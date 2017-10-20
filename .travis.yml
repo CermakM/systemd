@@ -1,14 +1,57 @@
 language: c
-compiler:
-  - gcc
+compiler: gcc
+
+sudo: required
+
+services:
+    - docker
+
 before_install:
- - sudo apt-get update -qq
- - sudo apt-get install autotools-dev automake autoconf libtool libdbus-1-dev libcap-dev libblkid-dev libmount-dev libpam-dev libcryptsetup-dev libaudit-dev libacl1-dev libattr1-dev libselinux-dev liblzma-dev libgcrypt-dev libqrencode-dev libmicrohttpd-dev gperf python2.7-dev
-script: ./autogen.sh && ./configure && make V=1 && sudo ./systemd-machine-id-setup && make check && make distcheck
+    - docker build -t travis/systemd .
+      #    - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
+    - docker pull fedora:latest
+    - docker ps -a
+    - docker run -dit travis/systemd bash
+
+# Run standard script stage before the Coverity Scan
+script: 
+    - |
+       if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then
+        docker exec -ti travis/systemd meson build 
+        docker exec -ti travis/system dinja -C build 
+        docker exec -ti travis/system dinja -C build test
+       fi
+
 after_failure: cat test-suite.log
-notifications:
-  irc:
-    channels:
-      - "irc.freenode.org#systemd"
-    on_success: change
-    on_failure: always
+
+branches:
+    only:
+        travis-docker
+
+# notifications:
+#   irc:
+#     channels:
+#       - "irc.freenode.org#systemd"
+#     on_success: change
+#     on_failure: always
+
+# env:
+#     global:
+#         # COVERITY_SCAN_TOKEN
+#         - secure: "TBD"  # TODO
+
+# addons:
+#     coverity_scan:
+#         project:
+#             name: CermakM/systemd  # FIXME
+#             description: systemd System and Service Manager
+
+#         notification_email: macermak@redhat.com
+
+#         # Commands to prepare for build
+#         build_command_prepend: meson build
+
+#         # The command that will be added as an argument to "cov-build" to compile your project for analysis,
+#         build_command: ninja -C build
+
+#         branch_pattern: coverity_scan
