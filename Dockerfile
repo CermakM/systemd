@@ -5,8 +5,8 @@ FROM fedora:latest
 COPY requirements.txt /tmp/
 
 # Install the requirements
-RUN dnf -y install $(cat '/tmp/requirements.txt') \
-	dnf builddep systemd
+RUN dnf -y install $(cat '/tmp/requirements.txt')
+RUN dnf -y builddep systemd
 
 COPY . /builddir/systemd/
 

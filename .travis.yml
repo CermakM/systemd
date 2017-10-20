@@ -15,6 +15,12 @@ before_install:
 
 # Run standard script stage before the Coverity Scan
 script: 
+    - uname -a
+    - docker ps -a
+    - docker ps
+    - docker images
+    - whoami
+    - pwd
     - |
        if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then
         docker exec -ti travis/systemd meson build 
