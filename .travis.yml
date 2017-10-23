@@ -8,27 +8,36 @@ services:
 
 before_install:
     - sudo apt-get update
+    - echo "ENV GIT_SHA ${TRAVIS_COMMIT}" >> Dockerfile
     - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
-    - docker build -t travisci/systemd .
-    - docker ps -a
-    - docker run -dit travisci/systemd bash
+    - docker --version
+
+install:
+    - docker build -t ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} --pull=true .
 
 # Run standard script stage before the Coverity Scan
 script: 
-    - docker --version
+    - docker run -dit ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} --name ${TRAVIS_COMMIT} bash
     - docker ps -a
     - |
        if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then
-        docker exec -ti travisci/systemd meson build
-        docker exec -ti travisci/systemd dinja -C build
-        docker exec -ti travisci/systemd dinja -C build test
+        docker exec -ti ${TRAVIS_COMMIT} meson build
+        docker exec -ti ${TRAVIS_COMMIT} ninja -C build
+        docker exec -ti ${TRAVIS_COMMIT} ninja -C build test
        fi
 
-after_failure: docker exec -ti travisci/systemd cat test-suite.log
+after_failure: docker exec -ti ${TRAVIS_COMMIT} cat test-suite.log
 
 branches:
     only:
         travis-docker
+
+env:
+    global:
+        - DOCKER_REPOSITORY=travis_ci/systemd
+
+before-script:
+    - env > .env
 
 # notifications:
 #   irc:
