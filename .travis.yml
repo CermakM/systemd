@@ -17,7 +17,7 @@ install:
 
 # Run standard script stage before the Coverity Scan
 script: 
-    - docker run -dit --name ${TRAVIS_COMMIT} ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
+    - docker run --privileged -dit --name ${TRAVIS_COMMIT} ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
     - docker ps -a
     - |
        if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then
@@ -26,7 +26,8 @@ script:
         docker exec -ti ${TRAVIS_COMMIT} ninja -C build test
        fi
 
-after_failure: docker exec -ti ${TRAVIS_COMMIT} cat test-suite.log
+after_failure: 
+  - docker exec -ti cat build/meson-logs/testlog.txt
 
 branches:
     only:
