@@ -17,7 +17,7 @@ install:
 
 # Run standard script stage before the Coverity Scan
 script: 
-    - docker run -dit ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} --name ${TRAVIS_COMMIT} bash
+    - docker run -dit --name ${TRAVIS_COMMIT} ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
     - docker ps -a
     - |
        if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then
