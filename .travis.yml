@@ -7,28 +7,24 @@ services:
     - docker
 
 before_install:
+    - sudo apt-get update
+    - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
     - docker build -t travis/systemd .
-      #    - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
-    - docker pull fedora:latest
     - docker ps -a
     - docker run -dit travis/systemd bash
 
 # Run standard script stage before the Coverity Scan
 script: 
-    - uname -a
+    - docker --version
     - docker ps -a
-    - docker ps
-    - docker images
-    - whoami
-    - pwd
     - |
        if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then
-        docker exec -ti travis/systemd meson build 
-        docker exec -ti travis/system dinja -C build 
-        docker exec -ti travis/system dinja -C build test
+        docker exec -ti travis/systemd meson build
+        docker exec -ti travis/systemd dinja -C build
+        docker exec -ti travis/systemd dinja -C build test
        fi
 
-after_failure: cat test-suite.log
+after_failure: docker exec -ti travis/systemd cat test-suite.log
 
 branches:
     only:
