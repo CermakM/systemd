@@ -9,6 +9,7 @@ services:
 before_install:
     - sudo apt-get update
     - echo "ENV GIT_SHA ${TRAVIS_COMMIT}" >> Dockerfile
+    - echo "ENV MACHINE_ID ${MACHINE_ID}" >> Dockerfile
     - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
     - docker --version
 
@@ -17,7 +18,8 @@ install:
 
 # Run standard script stage before the Coverity Scan
 script: 
-    - docker run --privileged -dit --name ${TRAVIS_COMMIT} ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
+    - docker run --privileged --net=host -dit --name ${TRAVIS_COMMIT} ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
+    - docker exec -ti ${TRAVIS_COMMIT} bash -c "echo ${MACHINE_ID} > /etc/machine-id"
     - docker ps -a
     - |
        if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then
@@ -27,7 +29,7 @@ script:
        fi
 
 after_failure: 
-  - docker exec -ti cat build/meson-logs/testlog.txt
+  - docker exec -ti ${TRAVIS_COMMIT} cat build/meson-logs/testlog.txt
 
 branches:
     only:
@@ -36,6 +38,7 @@ branches:
 env:
     global:
         - DOCKER_REPOSITORY=travis_ci/systemd
+        - MACHINE_ID=$(cat /var/lib/dbus/machine-id)
 
 before-script:
     - env > .env
