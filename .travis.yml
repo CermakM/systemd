@@ -22,15 +22,18 @@ jobs:
 
         - stage: build
           script:
-            - docker run -dit --name ${TRAVIS_COMMIT} ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
             - docker ps -a
-            - docker exec -u 0 -ti ${TRAVIS_COMMIT} bash -c "echo ${MACHINE_ID} > /etc/machine-id"
-            - docker exec -ti ${TRAVIS_COMMIT} meson build
-            - docker exec -ti ${TRAVIS_COMMIT} ninja -C build
+            - docker run -dit --name travis_build ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
+            - docker exec -u 0 -ti travis_build bash -c "echo ${MACHINE_ID} > /etc/machine-id"
+            - docker exec -ti travis_build meson build
+            - docker exec -ti travis_build ninja -C build
+              # Commit it to the new image that will be used for testing
+            - docker commit ${TRAVIS_COMMIT} ${DOCKER_REPOSITORY}:build
 
         - stage: test
           script:
-            - docker run --privileged --net=host -dit --name ${TRAVIS_COMMIT} ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} ninja -C build test
+            - docker ps -a
+            - docker run --privileged --net=host -dit --name travis_test ${DOCKER_REPOSITORY}:build bash -c "ninja -C build test"
         # ---- Future idea ----
         # - stage: coverity scan
         #   addons:
@@ -50,7 +53,7 @@ jobs:
 
 # Specify the order of stages and conditions
 stages:
-    - name: build docker image
+    - build docker image
     - name: build
       if: env(COVERITY_SCAN_BRANCH) != 1
     - name: test
