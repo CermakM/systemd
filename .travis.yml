@@ -20,20 +20,18 @@ jobs:
             - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
             - docker --version
 
-        - stage: run docker container
-          script:
-            - docker run --privileged --net=host -dit --name ${TRAVIS_COMMIT} ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
-            - docker ps -a
-            - docker exec -u 0 -ti ${TRAVIS_COMMIT} bash -c "echo ${MACHINE_ID} > /etc/machine-id"
         - stage: build
           script:
+            - docker run -dit --name ${TRAVIS_COMMIT} ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
+            - docker ps -a
+            - docker exec -u 0 -ti ${TRAVIS_COMMIT} bash -c "echo ${MACHINE_ID} > /etc/machine-id"
             - docker exec -ti ${TRAVIS_COMMIT} meson build
             - docker exec -ti ${TRAVIS_COMMIT} ninja -C build
 
         - stage: test
           script:
-            - docker exec -ti ${TRAVIS_COMMIT} ninja -C build test
-        # Future idea
+            - docker run --privileged --net=host -dit --name ${TRAVIS_COMMIT} ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} ninja -C build test
+        # ---- Future idea ----
         # - stage: coverity scan
         #   addons:
     #     coverity_scan:
@@ -53,21 +51,15 @@ jobs:
 # Specify the order of stages and conditions
 stages:
     - name: build docker image
-    - name: run docker container
     - name: build
       if: env(COVERITY_SCAN_BRANCH) != 1
     - name: test
       if: env(COVERITY_SCAN_BRANCH) != 1
     # - name: coverity scan
-    #   if: env(TRAVIS_EVENT_TYPE) = cron
+    #   if: type = cron
 
 after_failure: 
   - docker exec -ti ${TRAVIS_COMMIT} cat build/meson-logs/testlog.txt
-
-# Temporary solution - only for testing purposes, delete afterwards
-branches:
-    only:
-        travis-docker
 
 env:
     global:
@@ -76,6 +68,11 @@ env:
 
 before-script:
     - env > .env
+
+# Temporary solution - only for testing purposes, delete afterwards
+branches:
+    only:
+        travis-docker
 
 # notifications:
 #   irc:
