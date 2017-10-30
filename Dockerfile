@@ -4,10 +4,12 @@ FROM fedora:latest
 # Copy the requirements into the container at /tmp
 COPY requirements.txt /tmp/
 
+ENV BULDDIR /builddir
+ENV PROJECT systemd
+
 # Install the requirements
 RUN dnf -y install $(cat '/tmp/requirements.txt')
-RUN dnf -y builddep systemd
+RUN dnf clean all && dnf -y builddep systemd  # clean step to prevent cache and metadata corruption
 
-COPY . /builddir/systemd/
-
-WORKDIR /builddir/systemd/
+COPY . $BULDDIR/$PROJECT/
+WORKDIR $BULDDIR/$PROJECT/
