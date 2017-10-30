@@ -6,31 +6,43 @@ sudo: required
 services:
     - docker
 
-before_install:
-    - sudo apt-get update
-    - echo "ENV GIT_SHA ${TRAVIS_COMMIT}" >> Dockerfile
-    - echo "ENV MACHINE_ID ${MACHINE_ID}" >> Dockerfile
-    - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
-    - docker --version
-
 install:
     - docker build -t ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} --pull=true .
 
 # Run standard script stage before the Coverity Scan
-script: 
-    - docker run --privileged --net=host -dit --name ${TRAVIS_COMMIT} ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
-    - docker ps -a
-    - docker exec -u 0 -ti ${TRAVIS_COMMIT} bash -c "echo ${MACHINE_ID} > /etc/machine-id"
-    - |
-       if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then
-        docker exec -ti ${TRAVIS_COMMIT} meson build
-        docker exec -ti ${TRAVIS_COMMIT} ninja -C build
-        docker exec -ti ${TRAVIS_COMMIT} ninja -C build test
-       fi
+jobs:
+    include:
+        - stage: build docker image
+          script:
+            - sudo apt-get update
+            - echo "ENV GIT_SHA ${TRAVIS_COMMIT}" >> Dockerfile
+            - echo "ENV MACHINE_ID ${MACHINE_ID}" >> Dockerfile
+            - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
+            - docker --version
+
+        - stage: run docker container
+          script:
+            - docker run --privileged --net=host -dit --name ${TRAVIS_COMMIT} ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
+            - docker ps -a
+            - docker exec -u 0 -ti ${TRAVIS_COMMIT} bash -c "echo ${MACHINE_ID} > /etc/machine-id"
+        - stage: build
+          script:
+            - docker exec -ti ${TRAVIS_COMMIT} meson build
+            - docker exec -ti ${TRAVIS_COMMIT} ninja -C build
+
+        - stage: test
+            - docker exec -ti ${TRAVIS_COMMIT} ninja -C build test
+
+stages:
+    - name: build
+      if: env(COVERITY_SCAN_BRANCH) != 1
+    - name: test
+      if: env(COVERITY_SCAN_BRANCH) != 1
 
 after_failure: 
   - docker exec -ti ${TRAVIS_COMMIT} cat build/meson-logs/testlog.txt
 
+# Temporary solution - only for testing purposes, delete afterwards
 branches:
     only:
         travis-docker
@@ -53,12 +65,12 @@ before-script:
 # env:
 #     global:
 #         # COVERITY_SCAN_TOKEN
-#         - secure: "TBD"  # TODO
+#         - secure:  # TODO
 
 # addons:
 #     coverity_scan:
 #         project:
-#             name: CermakM/systemd  # FIXME
+#             name: systemd/systemd  # GitHub project name FIXME
 #             description: systemd System and Service Manager
 
 #         notification_email: macermak@redhat.com
@@ -68,5 +80,3 @@ before-script:
 
 #         # The command that will be added as an argument to "cov-build" to compile your project for analysis,
 #         build_command: ninja -C build
-
-#         branch_pattern: coverity_scan
