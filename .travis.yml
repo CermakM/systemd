@@ -20,10 +20,7 @@ install:
 script: 
     - docker run --privileged --net=host -dit --name ${TRAVIS_COMMIT} ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
     - docker ps -a
-    - docker exec -ti ${TRAVIS_COMMIT} bash -c "echo ${MACHINE_ID} > /etc/machine-id"
-    - docker exec -ti ${TRAVIS_COMMIT} bash -c "useradd -ms /bin/bash ${TRAVIS_USER} -g wheel"
-    - docker exec -ti ${TRAVIS_COMMIT} bash -c "chown -R ${TRAVIS_USER} ."
-    - docker exec -ti ${TRAVIS_COMMIT} bash -c "su ${TRAVIS_USER} && cd ${WORKDIR}"
+    - docker exec -u 0 -ti ${TRAVIS_COMMIT} bash -c "echo ${MACHINE_ID} > /etc/machine-id"
     - |
        if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then
         docker exec -ti ${TRAVIS_COMMIT} meson build
@@ -42,8 +39,6 @@ env:
     global:
         - DOCKER_REPOSITORY=travis/systemd
         - MACHINE_ID=$(cat /var/lib/dbus/machine-id)
-        - TRAVIS_USER=travis
-        - WORKDIR=/builddir/systemd/
 
 before-script:
     - env > .env
