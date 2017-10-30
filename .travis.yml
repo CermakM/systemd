@@ -31,13 +31,35 @@ jobs:
             - docker exec -ti ${TRAVIS_COMMIT} ninja -C build
 
         - stage: test
+          script:
             - docker exec -ti ${TRAVIS_COMMIT} ninja -C build test
+        # Future idea
+        # - stage: coverity scan
+        #   addons:
+    #     coverity_scan:
+    #         project:
+    #             name: systemd/systemd  # GitHub project name FIXME
+    #             description: systemd System and Service Manager
 
+    #         notification_email: macermak@redhat.com
+
+    #         # Commands to prepare for build
+    #         build_command_prepend: meson build
+
+    #         # The command that will be added as an argument to "cov-build" to compile your project for analysis,
+    #         build_command: ninja -C build
+    #
+
+# Specify the order of stages and conditions
 stages:
+    - name: build docker image
+    - name: run docker container
     - name: build
       if: env(COVERITY_SCAN_BRANCH) != 1
     - name: test
       if: env(COVERITY_SCAN_BRANCH) != 1
+    # - name: coverity scan
+    #   if: env(TRAVIS_EVENT_TYPE) = cron
 
 after_failure: 
   - docker exec -ti ${TRAVIS_COMMIT} cat build/meson-logs/testlog.txt
@@ -67,6 +89,7 @@ before-script:
 #         # COVERITY_SCAN_TOKEN
 #         - secure:  # TODO
 
+# Better to put this in jobs if possible - could be easily controled with cron
 # addons:
 #     coverity_scan:
 #         project:
