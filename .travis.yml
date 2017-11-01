@@ -10,7 +10,7 @@ before-install:
     # Set up shared folder to place docker image to
     - pip install --user awscli
     - mkdir -p ${SHARED_DOCKER_DIR}
-    - aws s3 sync s3://${DOCKER_REPOSITORY}/shared/${TRAVIS_COMMIT}/docker ${SHARED_DOCKER_DIR}
+    - aws s3 sync s3://${DOCKER_REPOSITORY}/${TRAVIS_COMMIT}/docker ${SHARED_DOCKER_DIR}
 
 # Run standard script stage before the Coverity Scan
 jobs:
@@ -71,6 +71,9 @@ stages:
       if: env(COVERITY_SCAN_BRANCH) != 1
     - name: coverity scan
     #   if: type = cron
+
+after_success:
+    - aws s3 sync ${SHARED_DOCKER_DIR} s3://${DOCKER_REPOSITORY}/${TRAVIS_COMMIT}/docker
 
 after_failure: 
     - docker load --quiet --input ${SHARED_DOCKER_DIR}/${DOCKER_REPOSITORY}-test.tar
