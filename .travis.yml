@@ -13,30 +13,32 @@ jobs:
             - sudo apt-get update
             - echo "ENV GIT_SHA ${TRAVIS_COMMIT}" >> Dockerfile
             - echo "ENV MACHINE_ID ${MACHINE_ID}" >> Dockerfile
+            - echo "${AUTHOR_NAME}\t${COMMITTER_EMAIL}\t${TRAVIS_COMMIT_MESSAGE}" > gitinfo
             - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
             - docker --version
-            - docker build -t ${DOCKER_REPOSITORY} --pull=true .
+            - docker build -t ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} --pull=true .
             - docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
             - docker push ${DOCKER_REPOSITORY}
 
         - stage: build
           script:
             # Load docker image from shared aws for build
-            - docker run -dit --name travis_build ${DOCKER_REPOSITORY} bash
+            - docker run -dit --name travis_build ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
             - docker exec -u 0 -ti travis_build bash -c "echo ${MACHINE_ID} > /etc/machine-id"
             - docker exec -ti travis_build meson build
             - docker exec -ti travis_build ninja -C build
               # Commit it to the new image that will be used for testing and share it to aws
-            - docker commit -m "systemd build" -a %{author} travis_build ${DOCKER_REPOSITORY}
+            - docker commit -m "systemd build state" -a "${AUTHOR_NAME}" travis_build ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT}
             - docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
-            - docker push ${DOCKER_REPOSITORY}
+            - docker push ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT}
         - stage: test
           script:
             # Load docker image from shared aws for testing
-            - docker run --privileged --net=host -dit --name travis_test ${DOCKER_REPOSITORY} bash -c "ninja -C build test"
-            - docker commit -m "systemd tests" -a %{author} travis_test ${DOCKER_REPOSITORY}
+            - docker run --privileged --net=host -dit --name travis_test ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
+            - docker exec -ti travis_build ninja -C build test
+            - docker commit -m "systemd test state" -a "${AUTHOR_NAME}" travis_test ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT}
             - docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
-            - docker push ${DOCKER_REPOSITORY}
+            - docker push ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT}
         # Future idea ... will not run now probably FIXME
         - stage: coverity scan
           addons:
@@ -61,17 +63,19 @@ stages:
     - name: test
       if: env(COVERITY_SCAN_BRANCH) != 1
     - name: coverity scan
-    #   if: type = cron
+      if: type = cron
 
 after_failure: 
-    - docker run  -it --name travis_log ${DOCKER_REPOSITORY} bash -c "cat build/meson-logs/testlog.txt"
+    - docker run  -it --name travis_log ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash -c
+    - docker exec -dit travis_log bash -c "cat ${TEST_LOG_FILE}"
 
 env:
     global:
         - MACHINE_ID=$(cat /var/lib/dbus/machine-id)
-        - DOCKER_REPOSITORY=$DOCKER_USERNAME/$TRAVIS_COMMIT
-        - COMMITTER_EMAIL="$(git log -1 $TRAVIS_COMMIT --pretty="%cE")"
-        - AUTHOR_NAME="$(git log -1 $TRAVIS_COMMIT --pretty="%aN")"
+        - DOCKER_REPOSITORY=$DOCKER_USERNAME/systemd
+        - COMMITTER_EMAIL="$(git log -1 $TRAVIS_COMMIT --pretty=\"%cE\")"
+        - AUTHOR_NAME="$(git log -1 $TRAVIS_COMMIT --pretty=\"%aN\")"
+        - TEST_LOG_FILE="build/meson-logs/testlog.txt"
 
 before-script:
     - env > .env
