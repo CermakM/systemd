@@ -6,13 +6,6 @@ sudo: required
 services:
     - docker
 
-before-install:
-    # Set up shared folder to place docker image to
-    - pip install --user awscli
-    - mkdir -p ${SHARED_DOCKER_DIR}
-    - aws s3 sync s3://${DOCKER_REPOSITORY}/${TRAVIS_COMMIT}/docker ${SHARED_DOCKER_DIR}
-
-# Run standard script stage before the Coverity Scan
 jobs:
     include:
         - stage: build docker image
@@ -22,30 +15,28 @@ jobs:
             - echo "ENV MACHINE_ID ${MACHINE_ID}" >> Dockerfile
             - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
             - docker --version
-            - docker build -t ${DOCKER_REPOSITORY}:clean --pull=true .
-            - docker save -o ${SHARED_DOCKER_DIR}/${DOCKER_REPOSITORY}-clean.tar ${DOCKER_REPOSITORY}:clean
+            - docker build -t ${DOCKER_REPOSITORY} --pull=true .
+            - docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
+            - docker push ${DOCKER_REPOSITORY}
 
         - stage: build
           script:
             # Load docker image from shared aws for build
-            - docker load --quiet --input ${SHARED_DOCKER_DIR}/${DOCKER_REPOSITORY}-clean.tar
-            - docker images
-            - docker run -dit --name travis_build ${DOCKER_REPOSITORY}:clean bash
+            - docker run -dit --name travis_build ${DOCKER_REPOSITORY} bash
             - docker exec -u 0 -ti travis_build bash -c "echo ${MACHINE_ID} > /etc/machine-id"
             - docker exec -ti travis_build meson build
             - docker exec -ti travis_build ninja -C build
               # Commit it to the new image that will be used for testing and share it to aws
-            - docker commit travis_build ${DOCKER_REPOSITORY}:build
-            - docker save -o ${SHARED_DOCKER_DIR}/${DOCKER_REPOSITORY}-build.tar ${DOCKER_REPOSITORY}:build
-
+            - docker commit -m "systemd build" -a %{author} travis_build ${DOCKER_REPOSITORY}
+            - docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
+            - docker push ${DOCKER_REPOSITORY}
         - stage: test
           script:
             # Load docker image from shared aws for testing
-            - docker load --quiet --input ${SHARED_DOCKER_DIR}/${DOCKER_REPOSITORY}-build.tar
-            - docker images
-            - docker run --privileged --net=host -dit --name travis_test ${DOCKER_REPOSITORY}:build bash -c "ninja -C build test"
-            - docker commit travis_build ${DOCKER_REPOSITORY}:test
-            - docker save -o ${SHARED_DOCKER_DIR}/${DOCKER_REPOSITORY}-test.tar ${DOCKER_REPOSITORY}:test
+            - docker run --privileged --net=host -dit --name travis_test ${DOCKER_REPOSITORY} bash -c "ninja -C build test"
+            - docker commit -m "systemd tests" -a %{author} travis_test ${DOCKER_REPOSITORY}
+            - docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
+            - docker push ${DOCKER_REPOSITORY}
         # Future idea ... will not run now probably FIXME
         - stage: coverity scan
           addons:
@@ -72,21 +63,15 @@ stages:
     - name: coverity scan
     #   if: type = cron
 
-after_success:
-    - aws s3 sync ${SHARED_DOCKER_DIR} s3://${DOCKER_REPOSITORY}/${TRAVIS_COMMIT}/docker
-
 after_failure: 
-    - docker load --quiet --input ${SHARED_DOCKER_DIR}/${DOCKER_REPOSITORY}-test.tar
-    - docker images
-    - docker run  -it --name travis_log ${DOCKER_REPOSITORY}:test bash -c "cat build/meson-logs/testlog.txt"
+    - docker run  -it --name travis_log ${DOCKER_REPOSITORY} bash -c "cat build/meson-logs/testlog.txt"
 
 env:
     global:
-        # include $HOME/.local/bin for `aws`
-        - PATH=$HOME/.local/bin:$PATH
-        - SHARED_DOCKER_DIR=~/shared/$TRAVIS_COMMIT/docker
-        - DOCKER_REPOSITORY=travis-systemd
         - MACHINE_ID=$(cat /var/lib/dbus/machine-id)
+        - DOCKER_REPOSITORY=$DOCKER_USERNAME/$TRAVIS_COMMIT
+        - COMMITTER_EMAIL="$(git log -1 $TRAVIS_COMMIT --pretty="%cE")"
+        - AUTHOR_NAME="$(git log -1 $TRAVIS_COMMIT --pretty="%aN")"
 
 before-script:
     - env > .env
@@ -102,23 +87,3 @@ branches:
 #       - "irc.freenode.org#systemd"
 #     on_success: change
 #     on_failure: always
-
-# env:
-#     global:
-#         # COVERITY_SCAN_TOKEN
-#         - secure:  # TODO
-
-# Better to put this in jobs if possible - could be easily controled with cron
-# addons:
-#     coverity_scan:
-#         project:
-#             name: systemd/systemd  # GitHub project name FIXME
-#             description: systemd System and Service Manager
-
-#         notification_email: macermak@redhat.com
-
-#         # Commands to prepare for build
-#         build_command_prepend: meson build
-
-#         # The command that will be added as an argument to "cov-build" to compile your project for analysis,
-#         build_command: ninja -C build
