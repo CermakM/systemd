@@ -31,14 +31,16 @@ jobs:
             - docker commit -m "systemd build state" -a "${AUTHOR_NAME}" travis_build ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT}
             - docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
             - docker push ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT}
+
         - stage: test
           script:
             # Load docker image from shared aws for testing
             - docker run --privileged --net=host -dit --name travis_test ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
-            - docker exec -ti travis_build ninja -C build test
+            - docker exec -ti travis_test ninja -C build test
             - docker commit -m "systemd test state" -a "${AUTHOR_NAME}" travis_test ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT}
             - docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
             - docker push ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT}
+
         # Future idea ... will not run now probably FIXME
         - stage: coverity scan
           addons:
@@ -67,6 +69,7 @@ stages:
 
 after_failure: 
     - docker run  -it --name travis_log ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash -c
+    - docker ps -a
     - docker exec -dit travis_log bash -c "cat ${TEST_LOG_FILE}"
 
 env:
