@@ -52,18 +52,21 @@ jobs:
                  notification_email: macermak@redhat.com
 
                  # Commands to prepare for build
-                 build_command_prepend: meson build
+                 # build_command_prepend: meson build
 
                  # The command that will be added as an argument to "cov-build" to compile your project for analysis,
-                 build_command: ninja -C build
+                 # build_command: ninja -C build
 
 # Specify the order of stages and conditions
 stages:
-    - build docker image
+    - name: build docker image
+      if: False
     - name: build
-      if: env(COVERITY_SCAN_BRANCH) != 1
+      # if: env(COVERITY_SCAN_BRANCH) != 1
+      if: False
     - name: test
-      if: env(COVERITY_SCAN_BRANCH) != 1
+      # if: env(COVERITY_SCAN_BRANCH) != 1
+      if: False
     - name: coverity scan
       # if: type = cron
 
