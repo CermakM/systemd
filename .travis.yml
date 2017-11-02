@@ -13,7 +13,7 @@ jobs:
             - sudo apt-get update
             - echo "ENV GIT_SHA ${TRAVIS_COMMIT}" >> Dockerfile
             - echo "ENV MACHINE_ID ${MACHINE_ID}" >> Dockerfile
-            - echo "${AUTHOR_NAME}\t${COMMITTER_EMAIL}\t${TRAVIS_COMMIT_MESSAGE}" > gitinfo
+            - echo "$(git log -1 ${TRAVIS_COMMIT})" > COMMITINFO
             - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
             - docker --version
             - docker build -t ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} --pull=true .
@@ -65,7 +65,7 @@ stages:
     - name: test
       if: env(COVERITY_SCAN_BRANCH) != 1
     - name: coverity scan
-      if: type = cron
+      # if: type = cron
 
 after_failure: 
     - docker run  -it --name travis_log ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash -c
@@ -76,8 +76,9 @@ env:
     global:
         - MACHINE_ID=$(cat /var/lib/dbus/machine-id)
         - DOCKER_REPOSITORY=$DOCKER_USERNAME/systemd
-        - COMMITTER_EMAIL="$(git log -1 $TRAVIS_COMMIT --pretty=\"%cE\")"
         - AUTHOR_NAME="$(git log -1 $TRAVIS_COMMIT --pretty=\"%aN\")"
+        - COMMITTER_EMAIL="$(git log -1 $TRAVIS_COMMIT --pretty=\"%cE\")"
+        - COMMITTER_DATE="$(git log -1 $TRAVIS_COMMIT --pretty=\"%cD\")"
         - TEST_LOG_FILE="build/meson-logs/testlog.txt"
 
 before-script:
