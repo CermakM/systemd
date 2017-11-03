@@ -52,10 +52,14 @@ jobs:
                  notification_email: prace.mcermak@gmail.com
 
                  # Commands to prepare for build
-                 build_command_prepend: sysctl vsyscall=emulate
+                 build_command_prepend:
+                    - docker --version
+                      # For kernel version 4.8+
+                    - sysctl vsyscall=emulate
+                    - docker run -it --name travis_covscan ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
 
                  # The command that will be added as an argument to "cov-build" to compile your project for analysis,
-                 build_command: docker run -it --name travis_covscan ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} sh -c "meson cov-build && ninja -C cov-build"
+                 build_command:  meson cov-build && ninja -C cov-build
 
 # Specify the order of stages and conditions
 stages:
@@ -67,7 +71,7 @@ stages:
     - name: test
       if: type = cron  # FIXME - coverity debug only
       # if: env(COVERITY_SCAN_BRANCH) != 1
-    - name: coverity scan
+    - coverity scan
       # if: type = cron
 
 after_failure: 
