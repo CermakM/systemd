@@ -9,12 +9,13 @@ services:
 jobs:
     include:
         - stage: build docker image
-          script:
+          before_script: &docker_update
               # Ensure the latest version of docker is installed
               - sudo apt-get update
               - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
               - docker --version
               - env > .env
+          script:
               - echo "ENV GIT_SHA ${TRAVIS_COMMIT}" >> Dockerfile
               - echo "ENV MACHINE_ID ${MACHINE_ID}" >> Dockerfile
               - echo "$(git log -1 ${TRAVIS_COMMIT})" > COMMITINFO
@@ -23,12 +24,8 @@ jobs:
               - docker push ${DOCKER_REPOSITORY}
 
         - stage: build
+          before_script: *docker_update
           script:
-              # Ensure the latest version of docker is installed
-              - sudo apt-get update
-              - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
-              - docker --version
-              - env > .env
               - docker run -dit --name travis_build ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
               - docker exec -u 0 -ti travis_build bash -c "echo ${MACHINE_ID} > /etc/machine-id"
               - docker exec -ti travis_build meson build
@@ -39,12 +36,8 @@ jobs:
               - docker push ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT}
 
         - stage: test
+          before_script: *docker_update
           script:
-              # Ensure the latest version of docker is installed
-              - sudo apt-get update
-              - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
-              - docker --version
-              - env > .env
               - docker run --privileged --net=host -dit --name travis_test ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
               - docker exec -ti travis_test ninja -C build test
               - docker commit -m "systemd test state" -a "${AUTHOR_NAME}" travis_test ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT}
@@ -53,10 +46,11 @@ jobs:
 
         # Future idea ... will not run now probably FIXME
         - stage: coverity scan
+          before_script: *docker_update
           env:
               - COVERITY_SCAN_PROJECT_NAME=CermakM/systemd  # FIXME
               - COVERITY_SCAN_NOTIFICATION_EMAIL=macermak@redhat.com
-              - COVERITY_SCAN_BRANCH_PATTERN=master
+              - COVERITY_SCAN_BRANCH_PATTERN=travis-docker  # FIXME
               - COVERITY_SCAN_BUILD_COMMAND="meson cov-build && ninja -C cov-build"
               # The next declration is the encrypted COVERITY_SCAN_TOKEN, created
               #   via the "travis encrypt" command using the project repo's public key
@@ -92,11 +86,6 @@ jobs:
                   fi
 
                   TOOL_DIR=`find $TOOL_BASE -type d -name 'cov-analysis*'`
-              # Ensure the latest version of docker is installed
-              - sudo apt-get update
-              - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
-              - docker --version
-              - env > .env
                 # Export env variables for Coverity scan
               - |
                   docker run -dit \
