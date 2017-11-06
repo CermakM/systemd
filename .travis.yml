@@ -62,7 +62,7 @@ jobs:
                 # Get coverity tool and try if emit succeeds
                 # Make sure wget is installed
               - sudo apt-get update && sudo apt-get -y install wget
-                # Prepare coverity tool
+                # Prepare environment for Coverity tool
               - |
                   PLATFORM=`uname`
                   TOOL_ARCHIVE=/tmp/cov-analysis-${PLATFORM}.tgz
@@ -70,7 +70,8 @@ jobs:
                   TOOL_BASE=/tmp/coverity-scan-analysis
                   UPLOAD_URL="https://scan.coverity.com/builds"
                   SCAN_URL="https://scan.coverity.com"
-
+                # Get coverity tool
+              - |
                   if [ ! -d $TOOL_BASE ]; then
                       # Download Coverity Scan Analysis Tool
                       if [ ! -e $TOOL_ARCHIVE ]; then
@@ -89,12 +90,14 @@ jobs:
               - env > .env
               - |
                   docker run -dit \
-                  --env-file .env
                   # -e COVERITY_SCAN_PROJECT_NAME="${COVERITY_SCAN_PROJECT_NAME}" \
                   # -e COVERITY_SCAN_NOTIFICATION_EMAIL="${COVERITY_SCAN_NOTIFICATION_EMAIL}" \
                   # -e COVERITY_SCAN_BRANCH_PATTERN="${COVERITY_SCAN_BRANCH_PATTERN}" \
                   # -e COVERITY_SCAN_BUILD_COMMAND="${COVERITY_SCAN_BUILD_COMMAND}" \
+                  --env-file .env \
                   -v ${TOOL_DIR}:${TOOL_DIR}:ro \
+                  # We can share the volume here, because we do not need to commit if afterwards
+                  -v ${TRAVIS_BUILD_DIR}:/builddir/systemd \
                   --name travis_coverity_scan ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
                 # Export PATH befor executing script
               - docker exec -it travis_coverity_scan sh -c "${COVERITY_SCRIPT}"
