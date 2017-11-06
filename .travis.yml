@@ -80,13 +80,24 @@ jobs:
                   fi
                   TOOL_DIR=`find $TOOL_BASE -type d -name 'cov-analysis*'`
               - *docker_update
+                # Create Coverity env in docker container
+              - echo "ENV PLATFORM=$PLATFORM" >> Dockerfile
+              - echo "ENV TOOL_ARCHIVE=$TOOL_ARCHIVE" >> Dockerfile
+              - echo "ENV TOOL_URL=$TOOL_URL" >> Dockerfile
+              - echo "ENV TOOL_BASE=$TOOL_BASE" >> Dockerfile
+              - echo "ENV UPLOAD_URL=$UPLOAD_URL" >> Dockerfile
+              - echo "ENV SCAN_URL=$SCAN_URL" >> Dockerfile
+                # Export env variables for Coverity scan
               - |
                   docker run -dit \
-                  -e COVERITY_SCAN_BUILD_COMMAND="${COVERITY_SCAN_BUILD_COMMAND}" \
-                  -e TOOL_DIR="${TOOL_DIR}" \
+                  -e PLATFORM="$PLATFORM" \
+                  -e TOOL_ARCHIVE="$TOOL_ARCHIVE" \
+                  -e TOOL_URL="$TOOL_URL" \
+                  -e TOOL_BASE="$TOOL_BASE" \
+                  -e UPLOAD_URL="$UPLOAD_URL" \
+                  -e SCAN_URL="$SCAN_URL" \
                   -v ${TOOL_DIR}:${TOOL_DIR}:ro \
                   --name travis_coverity_scan ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
-              - docker exec -it travis_coverity_scan sh -c "export PATH=$TOOL_DIR/bin:$PATH"
               - docker exec -it travis_coverity_scan sh -c "cov-build --dir=./cov ${COVERITY_SCAN_BUILD_COMMAND}"
 
 # Specify the order of stages and conditions
