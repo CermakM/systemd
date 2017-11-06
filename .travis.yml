@@ -92,7 +92,6 @@ jobs:
                   fi
 
                   TOOL_DIR=`find $TOOL_BASE -type d -name 'cov-analysis*'`
-                  COV_BIN="$TOOL_DIR/bin"
               # Ensure the latest version of docker is installed
               - sudo apt-get update
               - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
@@ -108,7 +107,7 @@ jobs:
                   -v ${TOOL_DIR}:${TOOL_DIR}:ro \
                   --name travis_coverity_scan ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
                 # Export PATH befor executing script
-              - docker exec -it travis_coverity_scan sh -c "export PATH=${COV_BIN}/bin:\$PATH && cov-build --dir=./cov ${COVERITY_SCAN_BUILD_COMMAND}"
+              - docker exec -it travis_coverity_scan sh -c "export PATH=${TOOL_DIR}/bin:\$PATH && cov-build --dir=./cov ${COVERITY_SCAN_BUILD_COMMAND}"
 
 # Specify the order of stages and conditions
 stages:
