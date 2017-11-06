@@ -49,7 +49,7 @@ jobs:
           before_script: *docker_update
           env:
               - COVERITY_SCAN_PROJECT_NAME=CermakM/systemd  # FIXME
-              - COVERITY_SCAN_NOTIFICATION_EMAIL=${NOTIFICATION_EMAIL}
+              - COVERITY_SCAN_NOTIFICATION_EMAIL="${NOTIFICATION_EMAIL}"
               - COVERITY_SCAN_BRANCH_PATTERN=travis-docker  # FIXME
               - COVERITY_SCAN_BUILD_COMMAND="meson cov-build && ninja -C cov-build"
               # The next declration is the encrypted COVERITY_SCAN_TOKEN, created
@@ -88,18 +88,18 @@ jobs:
                 # Get coverity script
               - wget -nv -0 ${COVERITY_SCRIPT} ${COVERITY_SCRIPT_URL}
                 # Ensure executable
-              - if [[ ! -x "{$COVERITY_SCRIPT}" ]] ; then chmod +x ${COVERITY_SCRIPT} ; fi
+              - if [[ ! -x "{$COVERITY_SCRIPT}" ]] ; then chmod +x "${COVERITY_SCRIPT}" ; fi
                 # Export env variables for Coverity scan
               - |
                   docker run -dit \
-                  -e COVERITY_SCAN_PROJECT_NAME="$COVERITY_SCAN_PROJECT_NAME" \
-                  -e COVERITY_SCAN_NOTIFICATION_EMAIL="$COVERITY_SCAN_NOTIFICATION_EMAIL" \
-                  -e COVERITY_SCAN_BRANCH_PATTERN="$COVERITY_SCAN_BRANCH_PATTERN" \
-                  -e COVERITY_SCAN_BUILD_COMMAND="$COVERITY_SCAN_BUILD_COMMAND" \
+                  -e COVERITY_SCAN_PROJECT_NAME="${COVERITY_SCAN_PROJECT_NAME}" \
+                  -e COVERITY_SCAN_NOTIFICATION_EMAIL="${COVERITY_SCAN_NOTIFICATION_EMAIL}" \
+                  -e COVERITY_SCAN_BRANCH_PATTERN="${COVERITY_SCAN_BRANCH_PATTERN}" \
+                  -e COVERITY_SCAN_BUILD_COMMAND="${COVERITY_SCAN_BUILD_COMMAND}" \
                   -v ${TOOL_DIR}:${TOOL_DIR}:ro \
                   --name travis_coverity_scan ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
                 # Export PATH befor executing script
-              - docker exec -it travis_coverity_scan sh -c "export PATH=${TOOL_DIR}/bin:\$PATH && ${COVERITY_SCRIPT}"
+              - docker exec -it travis_coverity_scan sh -c "export PATH=${TOOL_DIR}/bin:\$PATH && sh ${COVERITY_SCRIPT}"
               # - docker exec -it travis_coverity_scan sh -c "export PATH=${TOOL_DIR}/bin:\$PATH && cov-build --dir=./cov ${COVERITY_SCAN_BUILD_COMMAND}"
 
 # Specify the order of stages and conditions
@@ -119,6 +119,7 @@ env:
         - MACHINE_ID=$(cat /var/lib/dbus/machine-id)
         - DOCKER_REPOSITORY=$DOCKER_USERNAME/systemd
         - AUTHOR_NAME="$(git log -1 $TRAVIS_COMMIT --pretty=\"%aN\")"
+        - AUTHOR_EMAIL="$(git log -1 $TRAVIS_COMMIT --pretty=\"%aE\")"
         - TEST_LOG_FILE="build/meson-logs/testlog.txt"
         - COVERITY_SCRIPT_URL="https://scan.coverity.com/scripts/travisci_build_coverity_scan.sh"
         - COVERITY_SCRIPT="coverity.sh"
@@ -132,6 +133,10 @@ branches:
         travis-docker
 
 # notifications:
+#   email:
+#     recipients:
+#       - ${NOTIFICATION_EMAIL}
+#       - ${AUTHOR_NAME}
 #   irc:
 #     channels:
 #       - "irc.freenode.org#systemd"
