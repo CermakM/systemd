@@ -85,15 +85,14 @@ jobs:
                 # Export env variables for Coverity scan
               - |
                   docker run -dit \
-                  -e PLATFORM="$PLATFORM" \
-                  -e TOOL_ARCHIVE="$TOOL_ARCHIVE" \
-                  -e TOOL_URL="$TOOL_URL" \
-                  -e TOOL_BASE="$TOOL_BASE" \
-                  -e UPLOAD_URL="$UPLOAD_URL" \
-                  -e SCAN_URL="$SCAN_URL" \
+                  -e COVERITY_SCAN_PROJECT_NAME="$COVERITY_SCAN_PROJECT_NAME" \
+                  -e COVERITY_SCAN_NOTIFICATION_EMAIL="$COVERITY_SCAN_NOTIFICATION_EMAIL" \
+                  -e COVERITY_SCAN_BRANCH_PATTERN="$COVERITY_SCAN_BRANCH_PATTERN" \
+                  -e COVERITY_SCAN_BUILD_COMMAND="$COVERITY_SCAN_BUILD_COMMAND" \
                   -v ${TOOL_DIR}:${TOOL_DIR}:ro \
                   --name travis_coverity_scan ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
-              - docker exec -it travis_coverity_scan sh -c "${COV_BIN}/cov-build --dir=./cov ${COVERITY_SCAN_BUILD_COMMAND}"
+                # Export PATH befor executing script
+              - docker exec -it travis_coverity_scan sh -c "export PATH=${COV_BIN}/bin:\$PATH && cov-build --dir=./cov ${COVERITY_SCAN_BUILD_COMMAND}"
 
 # Specify the order of stages and conditions
 stages:
