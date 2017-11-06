@@ -95,7 +95,7 @@ jobs:
                   -v ${TRAVIS_BUILD_DIR}:/builddir/systemd \
                   --name travis_coverity_scan ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
                 # ruby and curl required to run the coverity script
-              - docker exec -u 0 -it travis_coverity_scan sh -c "dnf -y install ruby curl"
+              - docker exec -u 0 -it travis_coverity_scan sh -c "dnf -y install ruby curl rubygem-json"
               - docker exec -it travis_coverity_scan sh ${COVERITY_SCRIPT}
               # - docker exec -it travis_coverity_scan sh -c "export PATH=${TOOL_DIR}/bin:\$PATH && cov-build --dir=./cov ${COVERITY_SCAN_BUILD_COMMAND}"
 
