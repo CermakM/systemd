@@ -10,11 +10,9 @@ jobs:
     include:
         - stage: build docker image
           script:
-              - sudo apt-get update
               - echo "ENV GIT_SHA ${TRAVIS_COMMIT}" >> Dockerfile
               - echo "ENV MACHINE_ID ${MACHINE_ID}" >> Dockerfile
               - echo "$(git log -1 ${TRAVIS_COMMIT})" > COMMITINFO
-              - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
               - docker --version
               - docker build -t ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} --pull=true .
               - docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
@@ -54,14 +52,10 @@ jobs:
           script:
               # Debug only - FIXME
               # For kernel version 4.8+
-              - docker --version
-              - sudo apt-get update
-              - sudo sysctl vsyscall=emulate
-              - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
-              - docker --version
+              - sudo sysctl vsyscall=emulate || true
                 # Get coverity tool and try if emit succeeds
                 # Make sure wget is installed
-              - sudo apt-get update && sudo apt-get install wget
+              - sudo apt-get update && sudo apt-get -y install wget
               - |
                   PLATFORM=`uname`
                   TOOL_ARCHIVE=/tmp/cov-analysis-${PLATFORM}.tgz
@@ -85,10 +79,11 @@ jobs:
                       popd
                   fi
                   TOOL_DIR=`find $TOOL_BASE -type d -name 'cov-analysis*'`
-              - docker run -dit -e COVERITY_SCAN_BUILD_COMMAND="${COVERITY_SCAN_BUILD_COMMAND}" \
-                -e TOOL_DIR="${TOOL_DIR}" \
-                -v ${TOOL_DIR}:${TOOL_DIR}:ro \
-                --name travis_coverity_scan ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
+              - |
+                  docker run -dit -e COVERITY_SCAN_BUILD_COMMAND="${COVERITY_SCAN_BUILD_COMMAND}" \
+                  -e TOOL_DIR="${TOOL_DIR}" \
+                  -v ${TOOL_DIR}:${TOOL_DIR}:ro \
+                  --name travis_coverity_scan ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
               - docker exec -it ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} sh -c "export PATH=$TOOL_DIR/bin:$PATH"
               - docker exec -it ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} sh -c "cov-build --dir=./cov ${COVERITY_SCAN_BUILD_COMMAND}"
 
@@ -104,9 +99,6 @@ stages:
     - name: coverity scan
       # if: type = cron
 
-after_failure: 
-    - docker run  -it --name travis_log ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash -c "cat ${TEST_LOG_FILE}"
-
 env:
     global:
         - MACHINE_ID=$(cat /var/lib/dbus/machine-id)
@@ -114,8 +106,16 @@ env:
         - AUTHOR_NAME="$(git log -1 $TRAVIS_COMMIT --pretty=\"%aN\")"
         - TEST_LOG_FILE="build/meson-logs/testlog.txt"
 
+before-install:
+    # Ensure the latest version of docker is installed
+    - sudo apt-get update
+    - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
+
 before-script:
     - env > .env
+
+after_failure:
+    - docker run  -it --name travis_log ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash -c "cat ${TEST_LOG_FILE}"
 
 # Temporary solution - only for testing purposes, delete afterwards FIXME
 branches:
