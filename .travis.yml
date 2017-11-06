@@ -103,12 +103,12 @@ stages:
     - name: build docker image
     - name: build
       # if: env(COVERITY_SCAN_BRANCH) != 1
-      if: type = cron  # FIXME - coverity debug only
+      # if: type = cron  # FIXME - coverity debug only
     - name: test
       if: type = cron  # FIXME - coverity debug only
       # if: env(COVERITY_SCAN_BRANCH) != 1
     - name: coverity scan
-      # if: type = cron
+      if: type = cron
 
 env:
     global:
