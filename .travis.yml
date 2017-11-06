@@ -58,6 +58,7 @@ jobs:
           script:
               # Debug only - FIXME
               # For kernel version 4.8+
+              - set -x  # Debug - FIXME
               - sudo sysctl vsyscall=emulate || true
                 # Get coverity tool and try if emit succeeds
                 # Make sure wget is installed
@@ -88,6 +89,7 @@ jobs:
                   fi
                 # Export env variables for Coverity scan
               - env > .env
+              - cat .env  # Debug - FIXME
                 # Run the docker container with mounted values - we can now mount the builddir, since we will not need to commit the result of coverity scan into the container
               - |
                   docker run -dit --env-file .env \
@@ -96,7 +98,10 @@ jobs:
                   --name travis_coverity_scan ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
                 # ruby and curl required to run the coverity script
               - docker exec -u 0 -it travis_coverity_scan sh -c "dnf -y install ruby curl rubygem-json"
-              - docker exec -it travis_coverity_scan sh ${COVERITY_SCRIPT}
+                # Make sure coverity script is executable
+              - if [[ ! -x "${COVERITY_SCRIPT}" ]] ; then chmod +x ${COVERITY_SCRIPT} ; fi
+              - docker cp ${COVERITY_SCRIPT} travis_coverity_scan:/usr/local/bin
+              - docker exec -it travis_coverity_scan ${COVERITY_SCRIPT}
               # - docker exec -it travis_coverity_scan sh -c "export PATH=${TOOL_DIR}/bin:\$PATH && cov-build --dir=./cov ${COVERITY_SCAN_BUILD_COMMAND}"
 
 # Specify the order of stages and conditions
@@ -118,7 +123,6 @@ env:
         - AUTHOR_NAME="$(git log -1 $TRAVIS_COMMIT --pretty=\"%aN\")"
         - AUTHOR_EMAIL="$(git log -1 $TRAVIS_COMMIT --pretty=\"%aE\")"
         - TEST_LOG_FILE="build/meson-logs/testlog.txt"
-        - COVERITY_SCRIPT_URL="https://scan.coverity.com/scripts/travisci_build_coverity_scan.sh"
         - COVERITY_SCRIPT="coverity.sh"
 
 after_failure:
