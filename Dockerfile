@@ -11,9 +11,10 @@ ENV PROJECTDIR /builddir/systemd
 ENV NOROOT_USER travis
 
 # Install the requirements
-RUN dnf clean all && dnf update
+RUN dnf -y update
 RUN dnf -y install $(cat '/tmp/requirements.txt')
 # clean step to prevent cache and metadata corruption
+RUN dnf clean all
 RUN dnf -y builddep systemd
 
 COPY . $PROJECTDIR
