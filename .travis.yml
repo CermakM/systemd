@@ -88,13 +88,14 @@ jobs:
                   fi
                 # Export env variables for Coverity scan
               - env > .env
+                # Run the docker container with mounted values - we can now mount the builddir, since we will not need to commit the result of coverity scan into the container
               - |
                   docker run -dit --env-file .env \
                   -v ${TOOL_DIR}:${TOOL_DIR}:ro \
                   -v ${TRAVIS_BUILD_DIR}:/builddir/systemd \
                   --name travis_coverity_scan ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
                 # Export PATH befor executing script
-              - docker exec -it travis_coverity_scan sh -c "${COVERITY_SCRIPT}"
+              - docker exec -it travis_coverity_scan sh ${COVERITY_SCRIPT}
               # - docker exec -it travis_coverity_scan sh -c "export PATH=${TOOL_DIR}/bin:\$PATH && cov-build --dir=./cov ${COVERITY_SCAN_BUILD_COMMAND}"
 
 # Specify the order of stages and conditions
