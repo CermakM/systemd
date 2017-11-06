@@ -54,9 +54,10 @@ jobs:
           script:
               # Debug only - FIXME
               # For kernel version 4.8+
-              - sysctl vsyscall=emulate
+              - sudo sysctl vsyscall=emulate
                 # Get coverity tool and try if emit succeeds
-              - apt-get update && apt-get install wget
+                # Make sure wget is installed
+              - sudo apt-get update && sudo apt-get install wget
               - |
                   PLATFORM=`uname`
                   TOOL_ARCHIVE=/tmp/cov-analysis-${PLATFORM}.tgz
@@ -80,8 +81,8 @@ jobs:
                       popd
                   fi
                   TOOL_DIR=`find $TOOL_BASE -type d -name 'cov-analysis*'`
-              - docker run -dit -e COVERITY_SCAN_BUILD_COMMAND=${COVERITY_SCAN_BUILD_COMMAND} \
-                -e TOOL_DIR=${TOOL_DIR} \
+              - docker run -dit -e COVERITY_SCAN_BUILD_COMMAND='${COVERITY_SCAN_BUILD_COMMAND}' \
+                -e TOOL_DIR='${TOOL_DIR}' \
                 -v ${TOOL_DIR}:${TOOL_DIR}:ro \
                 --name travis_coverity_scan ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
               - docker exec -it ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} sh -c "export PATH=$TOOL_DIR/bin:$PATH"
@@ -112,7 +113,7 @@ env:
 before-script:
     - env > .env
 
-# Temporary solution - only for testing purposes, delete afterwards
+# Temporary solution - only for testing purposes, delete afterwards FIXME
 branches:
     only:
         travis-docker
