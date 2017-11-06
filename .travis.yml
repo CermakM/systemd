@@ -10,7 +10,7 @@ jobs:
     include:
         - stage: build docker image
           script:
-              *docker_update
+              <<: *docker_update
               - echo "ENV GIT_SHA ${TRAVIS_COMMIT}" >> Dockerfile
               - echo "ENV MACHINE_ID ${MACHINE_ID}" >> Dockerfile
               - echo "$(git log -1 ${TRAVIS_COMMIT})" > COMMITINFO
@@ -20,7 +20,7 @@ jobs:
 
         - stage: build
           script:
-              *docker_update
+              <<: *docker_update
               - docker run -dit --name travis_build ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
               - docker exec -u 0 -ti travis_build bash -c "echo ${MACHINE_ID} > /etc/machine-id"
               - docker exec -ti travis_build meson build
@@ -32,7 +32,7 @@ jobs:
 
         - stage: test
           script:
-              *docker_update
+              <<: *docker_update
               - docker run --privileged --net=host -dit --name travis_test ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
               - docker exec -ti travis_test ninja -C build test
               - docker commit -m "systemd test state" -a "${AUTHOR_NAME}" travis_test ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT}
@@ -81,7 +81,7 @@ jobs:
 
                   TOOL_DIR=`find $TOOL_BASE -type d -name 'cov-analysis*'`
                   COV_BIN="$TOOL_DIR/bin"
-              *docker_update
+              <<: *docker_update
                 # Export env variables for Coverity scan
               - |
                   docker run -dit \
