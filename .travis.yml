@@ -10,68 +10,93 @@ jobs:
     include:
         - stage: build docker image
           script:
-            - sudo apt-get update
-            - echo "ENV GIT_SHA ${TRAVIS_COMMIT}" >> Dockerfile
-            - echo "ENV MACHINE_ID ${MACHINE_ID}" >> Dockerfile
-            - echo "$(git log -1 ${TRAVIS_COMMIT})" > COMMITINFO
-            - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
-            - docker --version
-            - docker build -t ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} --pull=true .
-            - docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
-            - docker push ${DOCKER_REPOSITORY}
+              - sudo apt-get update
+              - echo "ENV GIT_SHA ${TRAVIS_COMMIT}" >> Dockerfile
+              - echo "ENV MACHINE_ID ${MACHINE_ID}" >> Dockerfile
+              - echo "$(git log -1 ${TRAVIS_COMMIT})" > COMMITINFO
+              - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
+              - docker --version
+              - docker build -t ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} --pull=true .
+              - docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
+              - docker push ${DOCKER_REPOSITORY}
 
         - stage: build
           script:
-            # Load docker image from shared aws for build
-            - docker run -dit --name travis_build ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
-            - docker exec -u 0 -ti travis_build bash -c "echo ${MACHINE_ID} > /etc/machine-id"
-            - docker exec -ti travis_build meson build
-            - docker exec -ti travis_build ninja -C build
-              # Commit it to the new image that will be used for testing and share it to aws
-            - docker commit -m "systemd build state" -a "${AUTHOR_NAME}" travis_build ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT}
-            - docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
-            - docker push ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT}
+              # Load docker image from shared aws for build
+              - docker run -dit --name travis_build ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
+              - docker exec -u 0 -ti travis_build bash -c "echo ${MACHINE_ID} > /etc/machine-id"
+              - docker exec -ti travis_build meson build
+              - docker exec -ti travis_build ninja -C build
+                # Commit it to the new image that will be used for testing and share it to aws
+              - docker commit -m "systemd build state" -a "${AUTHOR_NAME}" travis_build ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT}
+              - docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
+              - docker push ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT}
 
         - stage: test
           script:
-            # Load docker image from shared aws for testing
-            - docker run --privileged --net=host -dit --name travis_test ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
-            - docker exec -ti travis_test ninja -C build test
-            - docker commit -m "systemd test state" -a "${AUTHOR_NAME}" travis_test ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT}
-            - docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
-            - docker push ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT}
+              # Load docker image from shared aws for testing
+              - docker run --privileged --net=host -dit --name travis_test ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
+              - docker exec -ti travis_test ninja -C build test
+              - docker commit -m "systemd test state" -a "${AUTHOR_NAME}" travis_test ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT}
+              - docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
+              - docker push ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT}
 
         # Future idea ... will not run now probably FIXME
         - stage: coverity scan
-          addons:
-             coverity_scan:
-                 project:
-                     name: CermakM/systemd  # GitHub project name FIXME
-                     description: systemd System and Service Manager
+          env:
+              - COVERITY_SCAN_PROJECT_NAME=CermakM/systemd  # FIXME
+              - COVERITY_SCAN_NOTIFICATION_EMAIL=macermak@redhat.com
+              - COVERITY_SCAN_BRANCH_PATTERN=master
+              - COVERITY_SCAN_BUILD_COMMAND="meson cov-build && ninja -C cov-build"
+              # The next declration is the encrypted COVERITY_SCAN_TOKEN, created
+              #   via the "travis encrypt" command using the project repo's public key
+              - secure: "FOfIhGZcIViZtG7hHu5WSSgtuD0BcIr+AkTvBCosFX4cgNAxy7SAXcoq/7Nod2i6gceSY0OyoDVt2MY5Iy9wfU6wMklkpqZim/F/sdihrBjJWnybwVPROcZrXeCjJbdo5ak57KQ5p+hKPJRnPlTSUKzF14VXq6SGJV+jJq+wHj7r8NdC2+6owsh5zFrLarOL5d7yzPbQVBXQtkf2h+0o+ylKNT1OTASl4ba/HIgJaWYu1QQwiyNF7lmtZ2QEQG4t4+AYfI8//lDdiEv/sDAPfqmR+5hO/NCAn+nCIYbXULQoiuUg4pZ+As7lQS9Ti0yTlnnac7xo8TetNCNF/oZLQY5IXpZCHIFFJWI+9lxN+Ni2g79iKda9a9U1dyCJDd8kBixFvD2nFTjODjNE6GaADMTj6sSyaxLoBAJA0DZeGk95aqZK2BJHU+jqHTDL62S3etpu/Xsq/xCRzPQHL1NXMtS/Ne9v7LAEVlqpqPI1xAI+rJL2m5ZaAPM3MeufB2pleBcSHBBnaiy0ZPnfMVdZFWPPog7uoJTZsVB7ze4mwoeHKRMtjTfMYlGwf0hkPWyeUgn2m1Dvppq+vEeBI768g+LXXDytiqqjYdWnBYl4UBFnjjlufHvkZtZrg5psWEwhhHij+cqb4x7uy7avuVEX5GbGPZVPbjU8I0VpND0pl68="
+          script:
+              # Debug only - FIXME
+              # For kernel version 4.8+
+              - sysctl vsyscall=emulate
+                # Get coverity tool and try if emit succeeds
+              - apt-get update && apt-get install wget
+              - |
+                  PLATFORM=`uname`
+                  TOOL_ARCHIVE=/tmp/cov-analysis-${PLATFORM}.tgz
+                  TOOL_URL=https://scan.coverity.com/download/${PLATFORM}
+                  TOOL_BASE=/tmp/coverity-scan-analysis
+                  UPLOAD_URL="https://scan.coverity.com/builds"
+                  SCAN_URL="https://scan.coverity.com"
 
-                 notification_email: prace.mcermak@gmail.com
+                  if [ ! -d $TOOL_BASE ]; then
+                      # Download Coverity Scan Analysis Tool
+                      if [ ! -e $TOOL_ARCHIVE ]; then
+                          echo -e "\033[33;1mDownloading Coverity Scan Analysis Tool...\033[0m"
+                          wget -nv -O $TOOL_ARCHIVE $TOOL_URL --post-data "project=$COVERITY_SCAN_PROJECT_NAME&token=$COVERITY_SCAN_TOKEN"
+                      fi
 
-                 # Commands to prepare for build
-                 build_command_prepend:
-                    - docker --version
-                      # For kernel version 4.8+
-                    - sysctl vsyscall=emulate
-                    - docker run -it --name travis_covscan ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
-
-                 # The command that will be added as an argument to "cov-build" to compile your project for analysis,
-                 build_command:  meson cov-build && ninja -C cov-build
+                      # Extract Coverity Scan Analysis Tool
+                      echo -e "\033[33;1mExtracting Coverity Scan Analysis Tool...\033[0m"
+                      mkdir -p $TOOL_BASE
+                      pushd $TOOL_BASE
+                      tar xzf $TOOL_ARCHIVE
+                      popd
+                  fi
+                  TOOL_DIR=`find $TOOL_BASE -type d -name 'cov-analysis*'`
+              - docker run -dit -e COVERITY_SCAN_BUILD_COMMAND=${COVERITY_SCAN_BUILD_COMMAND} \
+                -e TOOL_DIR=${TOOL_DIR} \
+                -v ${TOOL_DIR}:${TOOL_DIR}:ro \
+                --name travis_coverity_scan ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
+              - docker exec -it ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} sh -c "export PATH=$TOOL_DIR/bin:$PATH"
+              - docker exec -it ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} sh -c "cov-build --dir=./cov ${COVERITY_SCAN_BUILD_COMMAND}"
 
 # Specify the order of stages and conditions
 stages:
     - name: build docker image
-      if: type = cron  # FIXME - coverity debug only
     - name: build
       # if: env(COVERITY_SCAN_BRANCH) != 1
       if: type = cron  # FIXME - coverity debug only
     - name: test
       if: type = cron  # FIXME - coverity debug only
       # if: env(COVERITY_SCAN_BRANCH) != 1
-    - coverity scan
+    - name: coverity scan
       # if: type = cron
 
 after_failure: 
@@ -83,9 +108,6 @@ env:
         - DOCKER_REPOSITORY=$DOCKER_USERNAME/systemd
         - AUTHOR_NAME="$(git log -1 $TRAVIS_COMMIT --pretty=\"%aN\")"
         - TEST_LOG_FILE="build/meson-logs/testlog.txt"
-        # The next declration is the encrypted COVERITY_SCAN_TOKEN, created
-        #   via the "travis encrypt" command using the project repo's public key
-        - secure: "FOfIhGZcIViZtG7hHu5WSSgtuD0BcIr+AkTvBCosFX4cgNAxy7SAXcoq/7Nod2i6gceSY0OyoDVt2MY5Iy9wfU6wMklkpqZim/F/sdihrBjJWnybwVPROcZrXeCjJbdo5ak57KQ5p+hKPJRnPlTSUKzF14VXq6SGJV+jJq+wHj7r8NdC2+6owsh5zFrLarOL5d7yzPbQVBXQtkf2h+0o+ylKNT1OTASl4ba/HIgJaWYu1QQwiyNF7lmtZ2QEQG4t4+AYfI8//lDdiEv/sDAPfqmR+5hO/NCAn+nCIYbXULQoiuUg4pZ+As7lQS9Ti0yTlnnac7xo8TetNCNF/oZLQY5IXpZCHIFFJWI+9lxN+Ni2g79iKda9a9U1dyCJDd8kBixFvD2nFTjODjNE6GaADMTj6sSyaxLoBAJA0DZeGk95aqZK2BJHU+jqHTDL62S3etpu/Xsq/xCRzPQHL1NXMtS/Ne9v7LAEVlqpqPI1xAI+rJL2m5ZaAPM3MeufB2pleBcSHBBnaiy0ZPnfMVdZFWPPog7uoJTZsVB7ze4mwoeHKRMtjTfMYlGwf0hkPWyeUgn2m1Dvppq+vEeBI768g+LXXDytiqqjYdWnBYl4UBFnjjlufHvkZtZrg5psWEwhhHij+cqb4x7uy7avuVEX5GbGPZVPbjU8I0VpND0pl68="
 
 before-script:
     - env > .env
