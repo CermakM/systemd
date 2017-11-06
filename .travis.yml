@@ -80,12 +80,13 @@ jobs:
                   fi
                   TOOL_DIR=`find $TOOL_BASE -type d -name 'cov-analysis*'`
               - |
-                  docker run -dit -e COVERITY_SCAN_BUILD_COMMAND="${COVERITY_SCAN_BUILD_COMMAND}" \
+                  docker run -dit \
+                  -e COVERITY_SCAN_BUILD_COMMAND="${COVERITY_SCAN_BUILD_COMMAND}" \
                   -e TOOL_DIR="${TOOL_DIR}" \
                   -v ${TOOL_DIR}:${TOOL_DIR}:ro \
                   --name travis_coverity_scan ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
-              - docker exec -it ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} sh -c "export PATH=$TOOL_DIR/bin:$PATH"
-              - docker exec -it ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} sh -c "cov-build --dir=./cov ${COVERITY_SCAN_BUILD_COMMAND}"
+              - docker exec -it travis_coverity_scan sh -c "export PATH=$TOOL_DIR/bin:$PATH"
+              - docker exec -it travis_coverity_scan sh -c "cov-build --dir=./cov ${COVERITY_SCAN_BUILD_COMMAND}"
 
 # Specify the order of stages and conditions
 stages:
@@ -106,12 +107,10 @@ env:
         - AUTHOR_NAME="$(git log -1 $TRAVIS_COMMIT --pretty=\"%aN\")"
         - TEST_LOG_FILE="build/meson-logs/testlog.txt"
 
-before-install:
+before-script:
     # Ensure the latest version of docker is installed
     - sudo apt-get update
     - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
-
-before-script:
     - env > .env
 
 after_failure:
