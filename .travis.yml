@@ -90,7 +90,7 @@ jobs:
               - env > .env
                 # Run the docker container with mounted values - we can now mount the builddir, since we will not need to commit the result of coverity scan into the container
               - |
-                  docker run -it --env-file .env \
+                  docker run -dit --env-file .env \
                   -v ${TOOL_DIR}:${TOOL_DIR}:ro \
                   -v ${TRAVIS_BUILD_DIR}:/builddir/systemd \
                   --name travis_coverity_scan ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
