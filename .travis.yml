@@ -49,7 +49,7 @@ jobs:
           before_script: *docker_update
           env:
               - COVERITY_SCAN_PROJECT_NAME=CermakM/systemd  # FIXME
-              - COVERITY_SCAN_NOTIFICATION_EMAIL=macermak@redhat.com
+              - COVERITY_SCAN_NOTIFICATION_EMAIL=${NOTIFICATION_EMAIL}
               - COVERITY_SCAN_BRANCH_PATTERN=travis-docker  # FIXME
               - COVERITY_SCAN_BUILD_COMMAND="meson cov-build && ninja -C cov-build"
               # The next declration is the encrypted COVERITY_SCAN_TOKEN, created
