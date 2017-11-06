@@ -10,7 +10,7 @@ jobs:
     include:
         - stage: build docker image
           script:
-              - *docker_update
+              *docker_update
               - echo "ENV GIT_SHA ${TRAVIS_COMMIT}" >> Dockerfile
               - echo "ENV MACHINE_ID ${MACHINE_ID}" >> Dockerfile
               - echo "$(git log -1 ${TRAVIS_COMMIT})" > COMMITINFO
@@ -20,7 +20,7 @@ jobs:
 
         - stage: build
           script:
-              - *docker_update
+              *docker_update
               - docker run -dit --name travis_build ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
               - docker exec -u 0 -ti travis_build bash -c "echo ${MACHINE_ID} > /etc/machine-id"
               - docker exec -ti travis_build meson build
@@ -32,7 +32,7 @@ jobs:
 
         - stage: test
           script:
-              - *docker_update
+              *docker_update
               - docker run --privileged --net=host -dit --name travis_test ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
               - docker exec -ti travis_test ninja -C build test
               - docker commit -m "systemd test state" -a "${AUTHOR_NAME}" travis_test ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT}
@@ -78,15 +78,10 @@ jobs:
                       tar xzf $TOOL_ARCHIVE
                       popd
                   fi
+
                   TOOL_DIR=`find $TOOL_BASE -type d -name 'cov-analysis*'`
-              - *docker_update
-                # Create Coverity env in docker container
-              - echo "ENV PLATFORM=$PLATFORM" >> Dockerfile
-              - echo "ENV TOOL_ARCHIVE=$TOOL_ARCHIVE" >> Dockerfile
-              - echo "ENV TOOL_URL=$TOOL_URL" >> Dockerfile
-              - echo "ENV TOOL_BASE=$TOOL_BASE" >> Dockerfile
-              - echo "ENV UPLOAD_URL=$UPLOAD_URL" >> Dockerfile
-              - echo "ENV SCAN_URL=$SCAN_URL" >> Dockerfile
+                  COV_BIN="$TOOL_DIR/bin"
+              *docker_update
                 # Export env variables for Coverity scan
               - |
                   docker run -dit \
@@ -98,7 +93,7 @@ jobs:
                   -e SCAN_URL="$SCAN_URL" \
                   -v ${TOOL_DIR}:${TOOL_DIR}:ro \
                   --name travis_coverity_scan ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
-              - docker exec -it travis_coverity_scan sh -c "cov-build --dir=./cov ${COVERITY_SCAN_BUILD_COMMAND}"
+              - docker exec -it travis_coverity_scan sh -c "${COV_BIN}/cov-build --dir=./cov ${COVERITY_SCAN_BUILD_COMMAND}"
 
 # Specify the order of stages and conditions
 stages:
