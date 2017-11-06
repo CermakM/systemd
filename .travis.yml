@@ -54,7 +54,11 @@ jobs:
           script:
               # Debug only - FIXME
               # For kernel version 4.8+
+              - docker --version
+              - sudo apt-get update
               - sudo sysctl vsyscall=emulate
+              - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
+              - docker --version
                 # Get coverity tool and try if emit succeeds
                 # Make sure wget is installed
               - sudo apt-get update && sudo apt-get install wget
@@ -81,8 +85,8 @@ jobs:
                       popd
                   fi
                   TOOL_DIR=`find $TOOL_BASE -type d -name 'cov-analysis*'`
-              - docker run -dit -e COVERITY_SCAN_BUILD_COMMAND='${COVERITY_SCAN_BUILD_COMMAND}' \
-                -e TOOL_DIR='${TOOL_DIR}' \
+              - docker run -dit -e COVERITY_SCAN_BUILD_COMMAND="${COVERITY_SCAN_BUILD_COMMAND}" \
+                -e TOOL_DIR="${TOOL_DIR}" \
                 -v ${TOOL_DIR}:${TOOL_DIR}:ro \
                 --name travis_coverity_scan ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
               - docker exec -it ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} sh -c "export PATH=$TOOL_DIR/bin:$PATH"
