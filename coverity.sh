@@ -1,6 +1,9 @@
 #!/bin/sh
 
 # set -e
+set -x  # FIXME
+
+echo env  # FIXME
 
 # Environment check
 echo -e "\033[33;1mNote: COVERITY_SCAN_PROJECT_NAME and COVERITY_SCAN_TOKEN are available on Project Settings page on scan.coverity.com\033[0m"

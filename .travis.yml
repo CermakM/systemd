@@ -58,7 +58,6 @@ jobs:
           script:
               # Debug only - FIXME
               # For kernel version 4.8+
-              - set -x  # Debug - FIXME
               - sudo sysctl vsyscall=emulate || true
                 # Get coverity tool and try if emit succeeds
                 # Make sure wget is installed
@@ -91,11 +90,12 @@ jobs:
               - env > .env
               - cat .env  # Debug - FIXME
                 # Run the docker container with mounted values - we can now mount the builddir, since we will not need to commit the result of coverity scan into the container
+                # FIXME - correct commit hash used for debug
               - |
                   docker run -dit --env-file .env \
                   -v ${TOOL_DIR}:${TOOL_DIR}:ro \
                   -v ${TRAVIS_BUILD_DIR}:/builddir/systemd \
-                  --name travis_coverity_scan ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
+                  --name travis_coverity_scan ${DOCKER_REPOSITORY}:19461aba2a954617c05042eb4ced5dbdb79f1351 bash
                 # ruby and curl required to run the coverity script
               - docker exec -u 0 -it travis_coverity_scan sh -c "dnf -y install ruby curl rubygem-json"
                 # Make sure coverity script is executable
@@ -107,6 +107,7 @@ jobs:
 # Specify the order of stages and conditions
 stages:
     - name: build docker image
+      if: type = cron  # FIXME - coverity debug only
     - name: build
       if: type = cron  # FIXME - coverity debug only
       # if: env(COVERITY_SCAN_BRANCH) != 1
