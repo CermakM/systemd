@@ -93,16 +93,16 @@ jobs:
                 # FIXME - correct commit hash used for debug
               - |
                   docker run -dit --env-file .env \
+                  -e TOOL_BASE=${TOOL_BASE} \
                   -e SCAN_URL=${SCAN_URL} \
                   -e UPLOAD_URL=${UPLOAD_URL} \
-                  -v ${TOOL_DIR}:${TOOL_DIR}:ro \
+                  -v ${TOOL_BASE}:${TOOL_BASE}:ro \
                   -v ${TRAVIS_BUILD_DIR}:/builddir/systemd \
                   --name travis_coverity_scan ${DOCKER_REPOSITORY}:19461aba2a954617c05042eb4ced5dbdb79f1351 bash
-                # Make sure coverity script is executable
+                # Make sure Coverity script is executable
               - if [[ ! -x "${COVERITY_SCRIPT}" ]] ; then chmod +x ${COVERITY_SCRIPT} ; fi
               - docker cp ${COVERITY_SCRIPT} travis_coverity_scan:/usr/local/bin
-                # Make sure Coverity tool is in the path before running it
-              - docker exec -it travis_coverity_scan sh -c "export PATH=${TOOL_DIR}/bin:\$PATH && ${COVERITY_SCRIPT}"
+              - docker exec -it travis_coverity_scan ${COVERITY_SCRIPT}
 
 # Specify the order of stages and conditions
 stages:
