@@ -24,6 +24,9 @@ ENV PROJECTDIR /home/$DOCKER_USER/systemd
 # Copy content to the project directory
 COPY . $PROJECTDIR
 
+# Greant user all permissions to the project dir
+RUN chown -R $DOCKER_USER $PROJECTDIR
+
 # Switch to noroot user by default
 USER $DOCKER_USER
 
