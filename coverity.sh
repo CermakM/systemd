@@ -87,3 +87,6 @@ if [ "$status_code" != "201" ]; then
   echo -e "\033[33;1mCoverity Scan upload failed: $TEXT.\033[0m"
   exit 1
 fi
+
+echo -e "\033[33;1mCoverity Scan Analysis completed succesfully.\033[0m"
+exit 0
