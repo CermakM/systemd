@@ -93,6 +93,8 @@ jobs:
                 # FIXME - correct commit hash used for debug
               - |
                   docker run -dit --env-file .env \
+                  -e SCAN_URL=${SCAN_URL} \
+                  -e UPLOAD_URL=${UPLOAD_URL} \
                   -v ${TOOL_DIR}:${TOOL_DIR}:ro \
                   -v ${TRAVIS_BUILD_DIR}:/builddir/systemd \
                   --name travis_coverity_scan ${DOCKER_REPOSITORY}:19461aba2a954617c05042eb4ced5dbdb79f1351 bash
