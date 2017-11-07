@@ -20,7 +20,7 @@ jobs:
               - echo "ENV MACHINE_ID ${MACHINE_ID}" >> Dockerfile
               - echo "$(git log -1 ${TRAVIS_COMMIT})" > COMMITINFO
                 # Build container for current user
-              - docker build --build-arg $USER -t ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} --pull=true .
+              - docker build --build-arg DOCKER_USER=$USER -t ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} --pull=true .
               - docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
               - docker push ${DOCKER_REPOSITORY}
 
