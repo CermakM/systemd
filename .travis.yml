@@ -67,7 +67,7 @@ jobs:
                   PLATFORM=`uname`
                   TOOL_ARCHIVE="/tmp/cov-analysis-${PLATFORM}.tgz"
                   TOOL_URL="https://scan.coverity.com/download/${PLATFORM}"
-                  TOOL_BASE="tmp/coverity-scan-analysis"
+                  TOOL_BASE="/tmp/coverity-scan-analysis"
                   SCAN_URL="https://scan.coverity.com"
                   UPLOAD_URL="https://scan.coverity.com/builds"
                 # Get coverity tool
