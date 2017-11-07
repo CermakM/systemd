@@ -101,8 +101,8 @@ jobs:
                 # Make sure coverity script is executable
               - if [[ ! -x "${COVERITY_SCRIPT}" ]] ; then chmod +x ${COVERITY_SCRIPT} ; fi
               - docker cp ${COVERITY_SCRIPT} travis_coverity_scan:/usr/local/bin
-              - docker exec -it travis_coverity_scan ${COVERITY_SCRIPT}
-              # - docker exec -it travis_coverity_scan sh -c "export PATH=${TOOL_DIR}/bin:\$PATH && cov-build --dir=./cov ${COVERITY_SCAN_BUILD_COMMAND}"
+                # Make sure Coverity tool is in the path before running it
+              - docker exec -it travis_coverity_scan sh -c "export PATH=${TOOL_DIR}/bin:\$PATH && ${COVERITY_SCRIPT}"
 
 # Specify the order of stages and conditions
 stages:
