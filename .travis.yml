@@ -19,7 +19,8 @@ jobs:
               - echo "ENV GIT_SHA ${TRAVIS_COMMIT}" >> Dockerfile
               - echo "ENV MACHINE_ID ${MACHINE_ID}" >> Dockerfile
               - echo "$(git log -1 ${TRAVIS_COMMIT})" > COMMITINFO
-              - docker build -t ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} --pull=true .
+                # Build container for current user
+              - docker build --build-arg $USER -t ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} --pull=true .
               - docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
               - docker push ${DOCKER_REPOSITORY}
 
@@ -89,7 +90,7 @@ jobs:
                 # Export env variables for Coverity scan
               - env > .env
               - cat .env  # Debug - FIXME
-                # Run the docker container with mounted values - we can now mount the builddir, since we will not need to commit the result of coverity scan into the container
+                # Run the docker container with mounted values - we can now mount the project dir, since we will not need to commit the result of coverity scan into the container
                 # FIXME - correct commit hash used for debug
               - |
                   docker run -dit --env-file .env \
@@ -97,7 +98,7 @@ jobs:
                   -e SCAN_URL=${SCAN_URL} \
                   -e UPLOAD_URL=${UPLOAD_URL} \
                   -v ${TOOL_BASE}:${TOOL_BASE}:ro \
-                  -v ${TRAVIS_BUILD_DIR}:/builddir/systemd \
+                  -v ${TRAVIS_BUILD_DIR}:/home/$USER/systemd -u $USER \
                   --name travis_coverity_scan ${DOCKER_REPOSITORY}:19461aba2a954617c05042eb4ced5dbdb79f1351 bash
                 # Make sure Coverity script is executable
               - if [[ ! -x "${COVERITY_SCRIPT}" ]] ; then chmod +x ${COVERITY_SCRIPT} ; fi

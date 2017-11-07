@@ -4,11 +4,11 @@
 # Use the latest stable version of fedora
 FROM fedora:latest
 
+# Demand the specification of non-root username
+ARG DOCKER_USER
+
 # Copy the requirements into the container at /tmp
 COPY requirements.txt /tmp/
-
-ENV PROJECTDIR /builddir/systemd
-ENV NOROOT_USER travis
 
 # Install the requirements
 RUN dnf -y update
@@ -17,12 +17,14 @@ RUN dnf -y install $(cat '/tmp/requirements.txt')
 RUN dnf clean all
 RUN dnf -y builddep systemd
 
+# Add non-root user and chown the project dir
+RUN useradd --create-home --shell /bin/bash $DOCKER_USER
+ENV PROJECTDIR /home/$DOCKER_USER/systemd
+
+# Copy content to the project directory
 COPY . $PROJECTDIR
 
-# Add non-root user and chown the project dir
-RUN useradd --create-home --shell /bin/bash $NOROOT_USER
-# change ownership of the project directory to the non-root user
-RUN chown -R $NOROOT_USER $PROJECTDIR
+# Switch to noroot user by default
+USER $DOCKER_USER
 
-USER $NOROOT_USER
 WORKDIR $PROJECTDIR
