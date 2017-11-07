@@ -57,7 +57,7 @@ COV_BUILD_OPTIONS=""
 #COV_BUILD_OPTIONS="--return-emit-failures 8 --parse-error-threshold 85"
 RESULTS_DIR="cov-int"
 eval "${COVERITY_SCAN_BUILD_COMMAND_PREPEND}"
-COVERITY_UNSUPPORTED=1 cov-build --dir $RESULTS_DIR $COV_BUILD_OPTIONS ${COVERITY_SCAN_BUILD_COMMAND[@]}
+COVERITY_UNSUPPORTED=1 cov-build --dir $RESULTS_DIR $COV_BUILD_OPTIONS $COVERITY_SCAN_BUILD_COMMAND
 cov-import-scm --dir $RESULTS_DIR --scm git --log $RESULTS_DIR/scm_log.txt
 
 if [ $? != 0 ]; then
