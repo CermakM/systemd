@@ -52,7 +52,6 @@ jobs:
               - COVERITY_SCAN_PROJECT_NAME=CermakM/systemd  # FIXME
               - COVERITY_SCAN_NOTIFICATION_EMAIL="${NOTIFICATION_EMAIL}"
               - COVERITY_SCAN_BRANCH_PATTERN=travis-docker  # FIXME
-              - declare -a COVERITY_SCAN_BUILD_COMMAND=("meson cov-build" "&&" "ninja -C cov-build")
               # The next declration is the encrypted COVERITY_SCAN_TOKEN, created
               #   via the "travis encrypt" command using the project repo's public key
               - secure: "FOfIhGZcIViZtG7hHu5WSSgtuD0BcIr+AkTvBCosFX4cgNAxy7SAXcoq/7Nod2i6gceSY0OyoDVt2MY5Iy9wfU6wMklkpqZim/F/sdihrBjJWnybwVPROcZrXeCjJbdo5ak57KQ5p+hKPJRnPlTSUKzF14VXq6SGJV+jJq+wHj7r8NdC2+6owsh5zFrLarOL5d7yzPbQVBXQtkf2h+0o+ylKNT1OTASl4ba/HIgJaWYu1QQwiyNF7lmtZ2QEQG4t4+AYfI8//lDdiEv/sDAPfqmR+5hO/NCAn+nCIYbXULQoiuUg4pZ+As7lQS9Ti0yTlnnac7xo8TetNCNF/oZLQY5IXpZCHIFFJWI+9lxN+Ni2g79iKda9a9U1dyCJDd8kBixFvD2nFTjODjNE6GaADMTj6sSyaxLoBAJA0DZeGk95aqZK2BJHU+jqHTDL62S3etpu/Xsq/xCRzPQHL1NXMtS/Ne9v7LAEVlqpqPI1xAI+rJL2m5ZaAPM3MeufB2pleBcSHBBnaiy0ZPnfMVdZFWPPog7uoJTZsVB7ze4mwoeHKRMtjTfMYlGwf0hkPWyeUgn2m1Dvppq+vEeBI768g+LXXDytiqqjYdWnBYl4UBFnjjlufHvkZtZrg5psWEwhhHij+cqb4x7uy7avuVEX5GbGPZVPbjU8I0VpND0pl68="
@@ -66,11 +65,11 @@ jobs:
                 # Prepare environment for Coverity tool
               - |
                   PLATFORM=`uname`
-                  TOOL_ARCHIVE=/tmp/cov-analysis-${PLATFORM}.tgz
-                  TOOL_URL=https://scan.coverity.com/download/${PLATFORM}
-                  TOOL_BASE=/tmp/coverity-scan-analysis
-                  UPLOAD_URL="https://scan.coverity.com/builds"
+                  TOOL_ARCHIVE="/tmp/cov-analysis-${PLATFORM}.tgz"
+                  TOOL_URL="https://scan.coverity.com/download/${PLATFORM}"
+                  TOOL_BASE="tmp/coverity-scan-analysis"
                   SCAN_URL="https://scan.coverity.com"
+                  UPLOAD_URL="https://scan.coverity.com/builds"
                 # Get coverity tool
               - |
                   if [ ! -d $TOOL_BASE ]; then
