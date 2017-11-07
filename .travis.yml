@@ -88,7 +88,6 @@ jobs:
                   fi
                 # Export env variables for Coverity scan
               - env > .env
-              - cat .env  # Debug - FIXME
                 # Run the docker container with mounted values - we can now mount the project dir, since we will not need to commit the result of coverity scan into the container
                 # FIXME - correct commit hash used for debug
               - |
