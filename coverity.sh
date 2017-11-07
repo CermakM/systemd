@@ -1,9 +1,8 @@
 #!/bin/sh
 
-# set -e
 set -x  # FIXME
 
-echo env  # FIXME
+env  # FIXME
 
 # Environment check
 echo -e "\033[33;1mNote: COVERITY_SCAN_PROJECT_NAME and COVERITY_SCAN_TOKEN are available on Project Settings page on scan.coverity.com\033[0m"
@@ -13,15 +12,6 @@ echo -e "\033[33;1mNote: COVERITY_SCAN_PROJECT_NAME and COVERITY_SCAN_TOKEN are 
 [ -z "$COVERITY_SCAN_BUILD_COMMAND" ] && echo "ERROR: COVERITY_SCAN_BUILD_COMMAND must be set" && exit 1
 [ -z "$COVERITY_SCAN_TOKEN" ] && echo "ERROR: COVERITY_SCAN_TOKEN must be set" && exit 1
 
-### HANDLED BY HOST ###
-
-# PLATFORM=`uname`
-# TOOL_ARCHIVE=/tmp/cov-analysis-${PLATFORM}.tgz
-# TOOL_URL=https://scan.coverity.com/download/${PLATFORM}
-# TOOL_BASE=/tmp/coverity-scan-analysis
-# UPLOAD_URL="https://scan.coverity.com/builds"
-# SCAN_URL="https://scan.coverity.com"
-
 # Do not run on pull requests
 if [ "${TRAVIS_PULL_REQUEST}" = "true" ]; then
   echo -e "\033[33;1mINFO: Skipping Coverity Analysis: branch is a pull request.\033[0m"
@@ -29,8 +19,7 @@ if [ "${TRAVIS_PULL_REQUEST}" = "true" ]; then
 fi
 
 # Verify this branch should run
-IS_COVERITY_SCAN_BRANCH=`ruby -e "puts '${TRAVIS_BRANCH}' =~ /\\A$COVERITY_SCAN_BRANCH_PATTERN\\z/ ? 1 : 0"`
-if [ "$IS_COVERITY_SCAN_BRANCH" = "1" ]; then
+if [[ "${TRAVIS_BRANCH^^}" =~ "${COVERITY_SCAN_BRANCH_PATTERN^^}" ]]; then
   echo -e "\033[33;1mCoverity Scan configured to run on branch ${TRAVIS_BRANCH}\033[0m"
 else
   echo -e "\033[33;1mCoverity Scan NOT configured to run on branch ${TRAVIS_BRANCH}\033[0m"
@@ -43,32 +32,15 @@ if [ "$AUTH_RES" = "Access denied" ]; then
   echo -e "\033[33;1mCoverity Scan API access denied. Check COVERITY_SCAN_PROJECT_NAME and COVERITY_SCAN_TOKEN.\033[0m"
   exit 1
 else
-  AUTH=`echo $AUTH_RES | ruby -e "require 'rubygems'; require 'json'; puts JSON[STDIN.read]['upload_permitted']"`
-  if [ "$AUTH" = "true" ]; then
+	AUTH=`echo $AUTH_RES | python -c "import sys, json; print json.load(sys.stdin)['upload_permitted']"`
+  if [ "$AUTH" = "True" ]; then
     echo -e "\033[33;1mCoverity Scan analysis authorized per quota.\033[0m"
   else
-    WHEN=`echo $AUTH_RES | ruby -e "require 'rubygems'; require 'json'; puts JSON[STDIN.read]['next_upload_permitted_at']"`
+	  WHEN=`echo $AUTH_RES | python -c "import sys; json; print json.load(sys.stdin)['next_upload_permitted_at']"`
     echo -e "\033[33;1mCoverity Scan analysis NOT authorized until $WHEN.\033[0m"
     exit 0
   fi
 fi
-
-### HANDLED BY HOST ###
-
-# if [ ! -d $TOOL_BASE ]; then
-#   # Download Coverity Scan Analysis Tool
-#   if [ ! -e $TOOL_ARCHIVE ]; then
-#     echo -e "\033[33;1mDownloading Coverity Scan Analysis Tool...\033[0m"
-#     wget -nv -O $TOOL_ARCHIVE $TOOL_URL --post-data "project=$COVERITY_SCAN_PROJECT_NAME&token=$COVERITY_SCAN_TOKEN"
-#   fi
-
-#   # Extract Coverity Scan Analysis Tool
-#   echo -e "\033[33;1mExtracting Coverity Scan Analysis Tool...\033[0m"
-#   mkdir -p $TOOL_BASE
-#   pushd $TOOL_BASE
-#   tar xzf $TOOL_ARCHIVE
-#   popd
-# fi
 
 TOOL_DIR=`find $TOOL_BASE -type d -name 'cov-analysis*'`
 export PATH=$TOOL_DIR/bin:$PATH

@@ -98,8 +98,6 @@ jobs:
                   -v ${TOOL_DIR}:${TOOL_DIR}:ro \
                   -v ${TRAVIS_BUILD_DIR}:/builddir/systemd \
                   --name travis_coverity_scan ${DOCKER_REPOSITORY}:19461aba2a954617c05042eb4ced5dbdb79f1351 bash
-                # ruby and curl required to run the coverity script
-              - docker exec -u 0 -it travis_coverity_scan sh -c "dnf -y install ruby curl rubygem-json"
                 # Make sure coverity script is executable
               - if [[ ! -x "${COVERITY_SCRIPT}" ]] ; then chmod +x ${COVERITY_SCRIPT} ; fi
               - docker cp ${COVERITY_SCRIPT} travis_coverity_scan:/usr/local/bin
