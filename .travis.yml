@@ -20,7 +20,12 @@ jobs:
               - echo "ENV MACHINE_ID ${MACHINE_ID}" >> Dockerfile
               - echo "$(git log -1 ${TRAVIS_COMMIT})" > COMMITINFO
                 # Build container for current user
-              - docker build --build-arg DOCKER_USER=$USER -t ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} --pull=true .
+              - |
+                  docker build \
+                  --build-arg DOCKER_USER=$USER \
+                  --build-arg DOCKER_USER_UID=`id -u` \
+                  --build-arg DOCKER_USER_GID=`id -g` \
+                  --force-rm -t ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} --pull=true .
               - docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
               - docker push ${DOCKER_REPOSITORY}
 
@@ -62,12 +67,12 @@ jobs:
               - sudo apt-get update && sudo apt-get -y install wget
                 # Prepare environment for Coverity tool
               - |
+                  export TOOL_BASE="/tmp/coverity-scan-analysis"
+                  export SCAN_URL="https://scan.coverity.com"
+                  export UPLOAD_URL="https://scan.coverity.com/builds"
                   PLATFORM=`uname`
                   TOOL_ARCHIVE="/tmp/cov-analysis-${PLATFORM}.tgz"
                   TOOL_URL="https://scan.coverity.com/download/${PLATFORM}"
-                  TOOL_BASE="/tmp/coverity-scan-analysis"
-                  SCAN_URL="https://scan.coverity.com"
-                  UPLOAD_URL="https://scan.coverity.com/builds"
                 # Get coverity tool
               - |
                   if [ ! -d $TOOL_BASE ]; then
@@ -84,17 +89,18 @@ jobs:
                       tar xzf $TOOL_ARCHIVE
                       popd
                   fi
-                # Export env variables for Coverity scan
+                # Export for debug purposes
               - env > .env
+                # Export env variables for Coverity scan
+              - env | grep - E "TRAVIS|COV|TOOL|URL" > .cov-env
                 # Run the docker container with mounted values - we can now mount the project dir, since we will not need to commit the result of coverity scan into the container
               - |
-                  docker run -dit --env-file .env \
-                  -e TOOL_BASE=${TOOL_BASE} \
-                  -e SCAN_URL=${SCAN_URL} \
-                  -e UPLOAD_URL=${UPLOAD_URL} \
+                  docker run -dit --env-file .cov-env \
                   -v ${TOOL_BASE}:${TOOL_BASE}:ro \
-                  -v ${TRAVIS_BUILD_DIR}:/home/$USER/systemd -u $USER \
                   --name travis_coverity_scan ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
+                  # -e TOOL_BASE=${TOOL_BASE} \
+                  # -e SCAN_URL=${SCAN_URL} \
+                  # -e UPLOAD_URL=${UPLOAD_URL} \
                 # Make sure Coverity script is executable
               - if [[ ! -x "${COVERITY_SCRIPT}" ]] ; then chmod +x ${COVERITY_SCRIPT} ; fi
               - docker cp ${COVERITY_SCRIPT} travis_coverity_scan:/usr/local/bin
