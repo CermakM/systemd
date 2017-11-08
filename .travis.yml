@@ -36,7 +36,7 @@ jobs:
               - docker exec -u 0 -ti travis_build bash -c "echo ${MACHINE_ID} > /etc/machine-id"
               - docker exec -ti travis_build meson build
               - docker exec -ti travis_build ninja -C build
-                # Commit it to the new image that will be used for testing and share it to aws
+                # Commit it to the new image that will be used for testing
               - docker commit -m "systemd build state" -a "${AUTHOR_NAME}" travis_build ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT}
               - docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
               - docker push ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT}
@@ -62,7 +62,6 @@ jobs:
           script:
               # For kernel version 4.8+
               - sudo sysctl vsyscall=emulate || true
-                # Get coverity tool and try if emit succeeds
                 # Make sure wget is installed
               - sudo apt-get update && sudo apt-get -y install wget
                 # Prepare environment for Coverity tool
@@ -93,14 +92,10 @@ jobs:
               - env > .env
                 # Export env variables for Coverity scan
               - env | grep -E "TRAVIS|COV|TOOL|URL" > .cov-env
-                # Run the docker container with mounted values - we can now mount the project dir, since we will not need to commit the result of coverity scan into the container
               - |
                   docker run -dit --env-file .cov-env \
                   -v ${TOOL_BASE}:${TOOL_BASE}:ro \
                   --name travis_coverity_scan ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
-                  # -e TOOL_BASE=${TOOL_BASE} \
-                  # -e SCAN_URL=${SCAN_URL} \
-                  # -e UPLOAD_URL=${UPLOAD_URL} \
                 # Make sure Coverity script is executable
               - if [[ ! -x "${COVERITY_SCRIPT}" ]] ; then chmod +x ${COVERITY_SCRIPT} ; fi
               - docker cp ${COVERITY_SCRIPT} travis_coverity_scan:/usr/local/bin
