@@ -88,8 +88,6 @@ jobs:
                       tar xzf $TOOL_ARCHIVE
                       popd
                   fi
-                # Export for debug purposes
-              - env > .env
                 # Export env variables for Coverity scan
               - env | grep -E "TRAVIS|COV|TOOL|URL" > .cov-env
               - |
