@@ -92,7 +92,7 @@ jobs:
                 # Export for debug purposes
               - env > .env
                 # Export env variables for Coverity scan
-              - env | grep - E "TRAVIS|COV|TOOL|URL" > .cov-env
+              - env | grep -E "TRAVIS|COV|TOOL|URL" > .cov-env
                 # Run the docker container with mounted values - we can now mount the project dir, since we will not need to commit the result of coverity scan into the container
               - |
                   docker run -dit --env-file .cov-env \
