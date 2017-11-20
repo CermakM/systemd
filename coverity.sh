@@ -3,7 +3,7 @@
 set -e
 
 # Declare build command
-declare -a COVERITY_SCAN_BUILD_COMMAND=("meson cov-build" "&&" "ninja -C cov-build")
+declare -a COVERITY_SCAN_BUILD_COMMAND=("meson build" "&&" "ninja -C build")
 
 # Environment check
 # If not set otherwise, use default values here
@@ -88,5 +88,5 @@ if [ "$status_code" != "201" ]; then
   exit 1
 fi
 
-echo -e "\033[33;1mCoverity Scan Analysis completed succesfully.\033[0m"
+echo -e "\n\033[33;1mCoverity Scan Analysis completed succesfully.\033[0m"
 exit 0
