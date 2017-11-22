@@ -3,7 +3,7 @@
 set -e
 
 # Declare build command
-declare -a COVERITY_SCAN_BUILD_COMMAND=("meson build" "&&" "ninja -C build")
+COVERITY_SCAN_BUILD_COMMAND="meson build && ninja -C build"
 
 # Environment check
 # If not set otherwise, use default values here
@@ -51,13 +51,16 @@ fi
 TOOL_DIR=`find $TOOL_BASE -type d -name 'cov-analysis*'`
 export PATH=$TOOL_DIR/bin:$PATH
 
+# Disable CCACHE for cov-build to compilation units correctly
+export CCACHE_DISABLE=1
+
 # Build
 echo -e "\033[33;1mRunning Coverity Scan Analysis Tool...\033[0m"
 COV_BUILD_OPTIONS=""
 #COV_BUILD_OPTIONS="--return-emit-failures 8 --parse-error-threshold 85"
 RESULTS_DIR="cov-int"
 eval "${COVERITY_SCAN_BUILD_COMMAND_PREPEND}"
-COVERITY_UNSUPPORTED=1 cov-build --dir $RESULTS_DIR $COV_BUILD_OPTIONS $COVERITY_SCAN_BUILD_COMMAND
+COVERITY_UNSUPPORTED=1 cov-build --dir $RESULTS_DIR $COV_BUILD_OPTIONS sh -c $COVERITY_SCAN_BUILD_COMMAND
 cov-import-scm --dir $RESULTS_DIR --scm git --log $RESULTS_DIR/scm_log.txt
 
 if [ $? != 0 ]; then
@@ -65,28 +68,28 @@ if [ $? != 0 ]; then
 	exit 1
 fi
 
-# Upload results
-echo -e "\033[33;1mTarring Coverity Scan Analysis results...\033[0m"
-RESULTS_ARCHIVE=analysis-results.tgz
-tar czf $RESULTS_ARCHIVE $RESULTS_DIR
-SHA=`git rev-parse --short HEAD`
+# # Upload results
+# echo -e "\033[33;1mTarring Coverity Scan Analysis results...\033[0m"
+# RESULTS_ARCHIVE=analysis-results.tgz
+# tar czf $RESULTS_ARCHIVE $RESULTS_DIR
+# SHA=`git rev-parse --short HEAD`
 
-echo -e "\033[33;1mUploading Coverity Scan Analysis results...\033[0m"
-response=$(curl \
-  --silent --write-out "\n%{http_code}\n" \
-  --form project=$COVERITY_SCAN_PROJECT_NAME \
-  --form token=$COVERITY_SCAN_TOKEN \
-  --form email=$COVERITY_SCAN_NOTIFICATION_EMAIL \
-  --form file=@$RESULTS_ARCHIVE \
-  --form version=$SHA \
-  --form description="Travis CI build" \
-  $UPLOAD_URL)
-status_code=$(echo "$response" | sed -n '$p')
-if [ "$status_code" != "201" ]; then
-  TEXT=$(echo "$response" | sed '$d')
-  echo -e "\033[33;1mCoverity Scan upload failed: $TEXT.\033[0m"
-  exit 1
-fi
+# echo -e "\033[33;1mUploading Coverity Scan Analysis results...\033[0m"
+# response=$(curl \
+#   --silent --write-out "\n%{http_code}\n" \
+#   --form project=$COVERITY_SCAN_PROJECT_NAME \
+#   --form token=$COVERITY_SCAN_TOKEN \
+#   --form email=$COVERITY_SCAN_NOTIFICATION_EMAIL \
+#   --form file=@$RESULTS_ARCHIVE \
+#   --form version=$SHA \
+#   --form description="Travis CI build" \
+#   $UPLOAD_URL)
+# status_code=$(echo "$response" | sed -n '$p')
+# if [ "$status_code" != "201" ]; then
+#   TEXT=$(echo "$response" | sed '$d')
+#   echo -e "\033[33;1mCoverity Scan upload failed: $TEXT.\033[0m"
+#   exit 1
+# fi
 
-echo -e "\n\033[33;1mCoverity Scan Analysis completed succesfully.\033[0m"
-exit 0
+# echo -e "\n\033[33;1mCoverity Scan Analysis completed succesfully.\033[0m"
+# exit 0
