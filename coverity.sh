@@ -54,11 +54,6 @@ export PATH=$TOOL_DIR/bin:$PATH
 # Disable CCACHE for cov-build to compilation units correctly
 export CCACHE_DISABLE=1
 
-# Build compiler configuration templates
-cov-configure --gcc
-cov-configure --template --comptype gcc --compiler cc
-cov-configure --template --comptype g++ --compiler c++
-
 # Build
 echo -e "\033[33;1mRunning Coverity Scan Analysis Tool...\033[0m"
 COV_BUILD_OPTIONS=""

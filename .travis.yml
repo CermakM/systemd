@@ -3,13 +3,30 @@ compiler: gcc
 
 sudo: required
 
+# Set up apt install configuration
+addons:
+    apt:
+      sources:
+          - ubuntu-toolchain-r-test
+      packages:
+          - gcc-7
+          - g++-7
+
 services:
     - docker
 
 jobs:
     include:
         - stage: build docker image
-          before_script: &docker_update
+          before_script: &update
+              # Link newest version of gcc create by the addon
+              - ln -s /usr/bin/gcc-7 /usr/local/bin/gcc
+              - ln -s /usr/bin/g++-7 /usr/local/bin/g++
+              # Export CC and CXX to tell cmake which compiler to use
+              - export CC=/usr/bin/gcc-7
+              - export CXX=/usr/bin/g++-7
+              # Check versions of gcc, g++ and cmake
+              - gcc -v && g++ -v && cmake --version
               # Ensure the latest version of docker is installed
               - sudo apt-get update
               - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
@@ -30,7 +47,7 @@ jobs:
               - docker push ${DOCKER_REPOSITORY}
 
         - stage: build
-          before_script: *docker_update
+          before_script: *update
           script:
               - docker run -dit --name travis_build ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
               - docker exec -u 0 -ti travis_build bash -c "echo ${MACHINE_ID} > /etc/machine-id"
@@ -42,7 +59,7 @@ jobs:
               - docker push ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT}
 
         - stage: test
-          before_script: *docker_update
+          before_script: *update
           script:
               - docker run --privileged --net=host -dit --name travis_test ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
               - docker exec -ti travis_test ninja -C build test
@@ -51,7 +68,7 @@ jobs:
               - docker push ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT}
 
         - stage: coverity scan
-          before_script: *docker_update
+          before_script: *update
           env:
               - COVERITY_SCAN_PROJECT_NAME=CermakM/systemd # FIXME
               - COVERITY_SCAN_NOTIFICATION_EMAIL="${AUTHOR_EMAIL}"
