@@ -93,6 +93,15 @@ jobs:
                       tar xzf $TOOL_ARCHIVE
                       popd
                   fi
+                # Find coverity bin path and export it
+              - export PATH="$PATH:`find $TOOL_BASE -type d -name 'cov-analysis*'`/bin"
+
+                # Build compiler configuration templates
+              - |
+                  cov-configure --gcc
+                  cov-configure --template --comptype gcc --compiler cc
+                  cov-configure --template --comptype g++ --compiler c++
+
                 # Export env variables for Coverity scan
               - env | grep -E "TRAVIS|COV|TOOL|URL" > .cov-env
               - |
