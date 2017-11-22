@@ -54,6 +54,11 @@ export PATH=$TOOL_DIR/bin:$PATH
 # Disable CCACHE for cov-build to compilation units correctly
 export CCACHE_DISABLE=1
 
+# Build compiler configuration templates
+cov-configure --gcc
+cov-configure --template --comptype gcc --compiler cc
+cov-configure --template --comptype g++ --compiler c++
+
 # Build
 echo -e "\033[33;1mRunning Coverity Scan Analysis Tool...\033[0m"
 COV_BUILD_OPTIONS=""
@@ -67,9 +72,6 @@ if [ $? != 0 ]; then
   echo -e "\033[33;1mCoverity Scan Build failed: $TEXT.\033[0m"
 	exit 1mCoverity
 fi
-
-# TEST.. FIXME
-cov-analyze --dir $RESULTS_DIR
 
 # # Upload results
 # echo -e "\033[33;1mTarring Coverity Scan Analysis results...\033[0m"
