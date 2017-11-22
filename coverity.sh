@@ -65,8 +65,11 @@ cov-import-scm --dir $RESULTS_DIR --scm git --log $RESULTS_DIR/scm_log.txt
 
 if [ $? != 0 ]; then
   echo -e "\033[33;1mCoverity Scan Build failed: $TEXT.\033[0m"
-	exit 1
+	exit 1mCoverity
 fi
+
+# TEST.. FIXME
+cov-analyze --dir $RESULTS_DIR
 
 # # Upload results
 # echo -e "\033[33;1mTarring Coverity Scan Analysis results...\033[0m"

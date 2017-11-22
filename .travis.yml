@@ -56,6 +56,8 @@ jobs:
               - COVERITY_SCAN_PROJECT_NAME=CermakM/systemd # FIXME
               - COVERITY_SCAN_NOTIFICATION_EMAIL="${AUTHOR_EMAIL}"
               - COVERITY_SCAN_BRANCH_PATTERN=travis-docker # FIXME
+                # Disable CCACHE for cov-build to compilation units correctly
+              - CCACHE_DISABLE=1
               # The next declration is the encrypted COVERITY_SCAN_TOKEN, created
               #   via the "travis encrypt" command using the project repo's public key
               #   Token for test systemd project
