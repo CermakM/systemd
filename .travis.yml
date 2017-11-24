@@ -110,14 +110,15 @@ jobs:
                       tar xzf $TOOL_ARCHIVE
                       popd
                   fi
-                # Find coverity bin path and export it
-              - export PATH="$PATH:`find $TOOL_BASE -type d -name 'cov-analysis*'`/bin"
+              - TOOL_DIR="$(find $TOOL_BASE -type d -name 'cov-analysis*')"
 
-                # Build compiler configuration templates
+                # Add _Float128 to coverity templates to add support for GCC7+
               - |
-                  cov-configure --gcc
-                  cov-configure --template --comptype gcc --compiler cc
-                  cov-configure --template --comptype g++ --compiler c++
+                  find $TOOL_DIR -regex '.*/compiler-compat-g[c+]+.h' -exec sh -c '\
+                                         printf "\n\
+                                                 #if __GNUC__ == 7 && __GNUC_MINOR__ >= 1\n\
+                                                 #define _Float128 long double\n\
+                                                 #endif\n" >> $1' -- {} \;
 
                 # Export env variables for Coverity scan
               - env | grep -E "TRAVIS|COV|TOOL|URL" > .cov-env
