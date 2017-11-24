@@ -3,7 +3,7 @@
 set -e
 
 # Declare build command
-COVERITY_SCAN_BUILD_COMMAND="meson cov-build && ninja -C cov-build"
+COVERITY_SCAN_BUILD_COMMAND="ninja -C cov-build"
 
 # Environment check
 # If not set otherwise, use default values here
@@ -68,28 +68,28 @@ if [ $? != 0 ]; then
 	exit 1mCoverity
 fi
 
-# Upload results
-echo -e "\033[33;1mTarring Coverity Scan Analysis results...\033[0m"
-RESULTS_ARCHIVE=analysis-results.tgz
-tar czf $RESULTS_ARCHIVE $RESULTS_DIR
-SHA=`git rev-parse --short HEAD`
+# # Upload results
+# echo -e "\033[33;1mTarring Coverity Scan Analysis results...\033[0m"
+# RESULTS_ARCHIVE=analysis-results.tgz
+# tar czf $RESULTS_ARCHIVE $RESULTS_DIR
+# SHA=`git rev-parse --short HEAD`
 
-echo -e "\033[33;1mUploading Coverity Scan Analysis results...\033[0m"
-response=$(curl \
-  --silent --write-out "\n%{http_code}\n" \
-  --form project=$COVERITY_SCAN_PROJECT_NAME \
-  --form token=$COVERITY_SCAN_TOKEN \
-  --form email=$COVERITY_SCAN_NOTIFICATION_EMAIL \
-  --form file=@$RESULTS_ARCHIVE \
-  --form version=$SHA \
-  --form description="Travis CI build" \
-  $UPLOAD_URL)
-status_code=$(echo "$response" | sed -n '$p')
-if [ "$status_code" != "201" ]; then
-  TEXT=$(echo "$response" | sed '$d')
-  echo -e "\033[33;1mCoverity Scan upload failed: $TEXT.\033[0m"
-  exit 1
-fi
+# echo -e "\033[33;1mUploading Coverity Scan Analysis results...\033[0m"
+# response=$(curl \
+#   --silent --write-out "\n%{http_code}\n" \
+#   --form project=$COVERITY_SCAN_PROJECT_NAME \
+#   --form token=$COVERITY_SCAN_TOKEN \
+#   --form email=$COVERITY_SCAN_NOTIFICATION_EMAIL \
+#   --form file=@$RESULTS_ARCHIVE \
+#   --form version=$SHA \
+#   --form description="Travis CI build" \
+#   $UPLOAD_URL)
+# status_code=$(echo "$response" | sed -n '$p')
+# if [ "$status_code" != "201" ]; then
+#   TEXT=$(echo "$response" | sed '$d')
+#   echo -e "\033[33;1mCoverity Scan upload failed: $TEXT.\033[0m"
+#   exit 1
+# fi
 
-echo -e "\n\033[33;1mCoverity Scan Analysis completed succesfully.\033[0m"
-exit 0
+# echo -e "\n\033[33;1mCoverity Scan Analysis completed succesfully.\033[0m"
+# exit 0
