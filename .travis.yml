@@ -130,6 +130,8 @@ jobs:
               - if [[ ! -x "${COVERITY_SCRIPT}" ]] ; then chmod +x ${COVERITY_SCRIPT} ; fi
               - docker cp ${COVERITY_SCRIPT} travis_coverity_scan:/usr/local/bin
               - docker exec -it travis_coverity_scan ${COVERITY_SCRIPT}
+                # Remove cov-build directory - not necessary to commit
+              - docker exec -it travis_coverity_scan rm -rf cov-build
               - docker commit -m "systemd coverity scan analysis" -a "${AUTHOR_NAME}" travis_coverity_scan ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT}
               - docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
               - docker push ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT}

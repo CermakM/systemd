@@ -3,7 +3,7 @@
 set -e
 
 # Declare build command
-COVERITY_SCAN_BUILD_COMMAND="meson build && ninja -C build"
+COVERITY_SCAN_BUILD_COMMAND="meson cov-build && ninja -C cov-build"
 
 # Environment check
 # If not set otherwise, use default values here
