@@ -70,7 +70,7 @@ jobs:
         - stage: coverity scan
           before_script: *update
           env:
-              - COVERITY_SCAN_PROJECT_NAME=CermakM/systemd # FIXME
+              - COVERITY_SCAN_PROJECT_NAME=systemd/systemd # FIXME
               - COVERITY_SCAN_NOTIFICATION_EMAIL="${AUTHOR_EMAIL}"
               - COVERITY_SCAN_BRANCH_PATTERN=travis-docker # FIXME
                 # Disable CCACHE for cov-build to compilation units correctly
@@ -78,9 +78,9 @@ jobs:
               # The next declration is the encrypted COVERITY_SCAN_TOKEN, created
               #   via the "travis encrypt" command using the project repo's public key
               #   Token for test systemd project
-              - secure: "FOfIhGZcIViZtG7hHu5WSSgtuD0BcIr+AkTvBCosFX4cgNAxy7SAXcoq/7Nod2i6gceSY0OyoDVt2MY5Iy9wfU6wMklkpqZim/F/sdihrBjJWnybwVPROcZrXeCjJbdo5ak57KQ5p+hKPJRnPlTSUKzF14VXq6SGJV+jJq+wHj7r8NdC2+6owsh5zFrLarOL5d7yzPbQVBXQtkf2h+0o+ylKNT1OTASl4ba/HIgJaWYu1QQwiyNF7lmtZ2QEQG4t4+AYfI8//lDdiEv/sDAPfqmR+5hO/NCAn+nCIYbXULQoiuUg4pZ+As7lQS9Ti0yTlnnac7xo8TetNCNF/oZLQY5IXpZCHIFFJWI+9lxN+Ni2g79iKda9a9U1dyCJDd8kBixFvD2nFTjODjNE6GaADMTj6sSyaxLoBAJA0DZeGk95aqZK2BJHU+jqHTDL62S3etpu/Xsq/xCRzPQHL1NXMtS/Ne9v7LAEVlqpqPI1xAI+rJL2m5ZaAPM3MeufB2pleBcSHBBnaiy0ZPnfMVdZFWPPog7uoJTZsVB7ze4mwoeHKRMtjTfMYlGwf0hkPWyeUgn2m1Dvppq+vEeBI768g+LXXDytiqqjYdWnBYl4UBFnjjlufHvkZtZrg5psWEwhhHij+cqb4x7uy7avuVEX5GbGPZVPbjU8I0VpND0pl68="
+              # - secure: "FOfIhGZcIViZtG7hHu5WSSgtuD0BcIr+AkTvBCosFX4cgNAxy7SAXcoq/7Nod2i6gceSY0OyoDVt2MY5Iy9wfU6wMklkpqZim/F/sdihrBjJWnybwVPROcZrXeCjJbdo5ak57KQ5p+hKPJRnPlTSUKzF14VXq6SGJV+jJq+wHj7r8NdC2+6owsh5zFrLarOL5d7yzPbQVBXQtkf2h+0o+ylKNT1OTASl4ba/HIgJaWYu1QQwiyNF7lmtZ2QEQG4t4+AYfI8//lDdiEv/sDAPfqmR+5hO/NCAn+nCIYbXULQoiuUg4pZ+As7lQS9Ti0yTlnnac7xo8TetNCNF/oZLQY5IXpZCHIFFJWI+9lxN+Ni2g79iKda9a9U1dyCJDd8kBixFvD2nFTjODjNE6GaADMTj6sSyaxLoBAJA0DZeGk95aqZK2BJHU+jqHTDL62S3etpu/Xsq/xCRzPQHL1NXMtS/Ne9v7LAEVlqpqPI1xAI+rJL2m5ZaAPM3MeufB2pleBcSHBBnaiy0ZPnfMVdZFWPPog7uoJTZsVB7ze4mwoeHKRMtjTfMYlGwf0hkPWyeUgn2m1Dvppq+vEeBI768g+LXXDytiqqjYdWnBYl4UBFnjjlufHvkZtZrg5psWEwhhHij+cqb4x7uy7avuVEX5GbGPZVPbjU8I0VpND0pl68="
               # Token for systemd/systemd FIXME
-              # - secure: "UNQLspT89GYWuVKFqW5W5RyqqnYg5RvX20IrNraOddhpdV9nhKBtozrfmhGXDGZwfHGWHt6g7YROlD/NIMvDvThVJIEYvSQiXCoo2zRrwkl2siET5MjPfRG8numiLq0KX47KGmyBJISJZCgDUdNGqqGwgf7AhDN78I3XtgqjFT1z0mGl8n0wiFpKPi7i3nECvF4Mk7xCCHqwByaq0z5G9NkVlOvP1EyCxwv3B6I5Umfch7ibp7iH44YnVXILK+yEry5dMuctYwYkDouR80ChEPQQ5fhhpO4++HJmFuSpfMTeCHpucAd2xwSUijejYeN/GNQ177GxSSk/8hRBGcuSK8T/WJ+KiuJPhZObV8mw+a6+qdQssWY4F9jya5ZKbZ/yTbxjtQ0m4AgtL28P9bEze8pLh16zFMX+hIEuoFSNmJqmtNttfbD5TKyYVZml59s9wvhlvMnlNpRSQva88OAOjXtiA41g+XtTxxpfW9mgd7HYhzSBs1efNiK7PfkANgve7KIYMAmCAqasgb1IIAyX7stOlJH06QOFXNH55PmJLkkKyL3SMQzgryMDWegU+XbS8t43r0x14WLuE7sc9JtnOr/G8hthFaMRp8xLy9aCBwyEIkEsyWa50VMoZDa3Spdb4r1CKBwcGdCbyE4rCehwEIznbfrsSovhwiUds7bbhBU="
+              - secure: "UNQLspT89GYWuVKFqW5W5RyqqnYg5RvX20IrNraOddhpdV9nhKBtozrfmhGXDGZwfHGWHt6g7YROlD/NIMvDvThVJIEYvSQiXCoo2zRrwkl2siET5MjPfRG8numiLq0KX47KGmyBJISJZCgDUdNGqqGwgf7AhDN78I3XtgqjFT1z0mGl8n0wiFpKPi7i3nECvF4Mk7xCCHqwByaq0z5G9NkVlOvP1EyCxwv3B6I5Umfch7ibp7iH44YnVXILK+yEry5dMuctYwYkDouR80ChEPQQ5fhhpO4++HJmFuSpfMTeCHpucAd2xwSUijejYeN/GNQ177GxSSk/8hRBGcuSK8T/WJ+KiuJPhZObV8mw+a6+qdQssWY4F9jya5ZKbZ/yTbxjtQ0m4AgtL28P9bEze8pLh16zFMX+hIEuoFSNmJqmtNttfbD5TKyYVZml59s9wvhlvMnlNpRSQva88OAOjXtiA41g+XtTxxpfW9mgd7HYhzSBs1efNiK7PfkANgve7KIYMAmCAqasgb1IIAyX7stOlJH06QOFXNH55PmJLkkKyL3SMQzgryMDWegU+XbS8t43r0x14WLuE7sc9JtnOr/G8hthFaMRp8xLy9aCBwyEIkEsyWa50VMoZDa3Spdb4r1CKBwcGdCbyE4rCehwEIznbfrsSovhwiUds7bbhBU="
           script:
               # For kernel version 4.8+
               - sudo sysctl vsyscall=emulate || true
