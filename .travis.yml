@@ -147,7 +147,7 @@ jobs:
         - stage: clean docker
           script:
               # Install python
-              - sudo apt-get update && sudo-apt get install python3 && python3-pip
+              - sudo apt-get update && sudo apt-get install python3 python3-pip
               # Get the tool from github and install it
               - |
                   git clone https://github.com/CermakM/docker-remote.git
@@ -156,9 +156,9 @@ jobs:
               # Get info about docker repo TODO .. what info?
               - REPO_SIZE=$(docker-remote repository --size $DOCKER_REPOSITORY)
               - TAG_COUNT=$(docker-remote tags --count $DOCKER_REPOSITORY)
-              - if [[ $TAG_COUNT -gt $MAX_COUNT ]]; then
+              - if [[ $TAG_COUNT -gt $TAGS_TO_KEEP ]]; then
                 docker-remote --login $DOCKER_USERNAME:$DOCKER_PASSWORD \
-                tags --assumeno --pop-back --keep $TAGS_KEEP
+                tags --assumeno --pop-back --keep $TAGS_TO_KEEP
                 fi
 
 
@@ -185,7 +185,7 @@ env:
         - AUTHOR_EMAIL="$(git log -1 $TRAVIS_COMMIT --pretty=\"%aE\")"
         - MACHINE_ID=$(cat /var/lib/dbus/machine-id)
         - COVERITY_SCRIPT="coverity.sh"
-        - TAGS_KEEP=9
+        - TAGS_TO_KEEP=9
 
 # Allow travis builds only for master branch
 branches:
