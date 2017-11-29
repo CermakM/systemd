@@ -70,7 +70,7 @@ jobs:
         - stage: coverity scan
           before_script: *update
           env:
-              - COVERITY_SCAN_PROJECT_NAME=systemd/systemd # FIXME
+              - COVERITY_SCAN_PROJECT_NAME=systemd/systemd
               - COVERITY_SCAN_NOTIFICATION_EMAIL="${AUTHOR_EMAIL}"
               - COVERITY_SCAN_BRANCH_PATTERN=travis-docker # FIXME
                 # Disable CCACHE for cov-build to compilation units correctly
@@ -82,6 +82,12 @@ jobs:
               # Token for systemd/systemd FIXME
               - secure: "UNQLspT89GYWuVKFqW5W5RyqqnYg5RvX20IrNraOddhpdV9nhKBtozrfmhGXDGZwfHGWHt6g7YROlD/NIMvDvThVJIEYvSQiXCoo2zRrwkl2siET5MjPfRG8numiLq0KX47KGmyBJISJZCgDUdNGqqGwgf7AhDN78I3XtgqjFT1z0mGl8n0wiFpKPi7i3nECvF4Mk7xCCHqwByaq0z5G9NkVlOvP1EyCxwv3B6I5Umfch7ibp7iH44YnVXILK+yEry5dMuctYwYkDouR80ChEPQQ5fhhpO4++HJmFuSpfMTeCHpucAd2xwSUijejYeN/GNQ177GxSSk/8hRBGcuSK8T/WJ+KiuJPhZObV8mw+a6+qdQssWY4F9jya5ZKbZ/yTbxjtQ0m4AgtL28P9bEze8pLh16zFMX+hIEuoFSNmJqmtNttfbD5TKyYVZml59s9wvhlvMnlNpRSQva88OAOjXtiA41g+XtTxxpfW9mgd7HYhzSBs1efNiK7PfkANgve7KIYMAmCAqasgb1IIAyX7stOlJH06QOFXNH55PmJLkkKyL3SMQzgryMDWegU+XbS8t43r0x14WLuE7sc9JtnOr/G8hthFaMRp8xLy9aCBwyEIkEsyWa50VMoZDa3Spdb4r1CKBwcGdCbyE4rCehwEIznbfrsSovhwiUds7bbhBU="
           script:
+              - |
+                  docker build \
+                  --build-arg DOCKER_USER=$USER \
+                  --build-arg DOCKER_USER_UID=`id -u` \
+                  --build-arg DOCKER_USER_GID=`id -g` \
+                  --force-rm -t ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} --pull=true .
               # For kernel version 4.8+
               - sudo sysctl vsyscall=emulate || true
                 # Make sure wget is installed
@@ -138,29 +144,46 @@ jobs:
               - docker commit -m "systemd coverity scan analysis" -a "${AUTHOR_NAME}" travis_coverity_scan ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT}
               - docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
               - docker push ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT}
+        - stage: clean docker
+          python: "3.6"
+          script:
+              # Get the tool from github and install it
+              - |
+                  git clone https://github.com/CermakM/docker-remote.git
+                  cd docker-remote && pip3 install --user .
+                  export PATH=~/.local/bin/:$PATH
+              # Get info about docker repo TODO .. what info?
+              - REPO_SIZE=$(docker-remote repository --size $DOCKER_REPOSITORY)
+              - TAG_COUNT=$(docker-remote tags --count $DOCKER_REPOSITORY)
+              - if [[ $TAG_COUNT -gt $MAX_COUNT ]]; then
+                docker-remote --login $DOCKER_USERNAME:$DOCKER_PASSWORD \
+                tags --assumeno --pop-back --keep $TAGS_KEEP
+
+
 
 # Specify the order of stages and conditions
 stages:
     - name: build docker image
+      if: env(COVERITY_SCAN_BRANCH) != 1 AND type = cron # FIXME
     - name: build
       if: env(COVERITY_SCAN_BRANCH) != 1 AND type = cron # FIXME
     - name: test
       if: env(COVERITY_SCAN_BRANCH) != 1 AND type = cron # FIXME
+      # This stage runs separately, the resulting container will not be pushed to Docker Hub
     - name: coverity scan
+      if: type = cron # FIXME
+      # Check for repository size when cron job is triggered and clean repo if necessary
+      # TODO: When to check? How many tags to preserve? Delete by time / number / size?
+    - name: clean docker
       # if: type = cron FIXME
-
 env:
     global:
-        - MACHINE_ID=$(cat /var/lib/dbus/machine-id)
         - DOCKER_REPOSITORY=$DOCKER_USERNAME/systemd
         - AUTHOR_NAME="$(git log -1 $TRAVIS_COMMIT --pretty=\"%aN\")"
         - AUTHOR_EMAIL="$(git log -1 $TRAVIS_COMMIT --pretty=\"%aE\")"
-        - TEST_LOG_FILE="build/meson-logs/testlog.txt"
+        - MACHINE_ID=$(cat /var/lib/dbus/machine-id)
         - COVERITY_SCRIPT="coverity.sh"
-
-after_failure:
-    # Same for both coverity and test build - coverity builds into the same folder
-    - docker run  -it --name travis_log ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash -c "cat ${TEST_LOG_FILE}"
+        - TAGS_KEEP=9
 
 # Allow travis builds only for master branch
 branches:
