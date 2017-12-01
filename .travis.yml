@@ -147,19 +147,27 @@ jobs:
         - stage: clean docker
           script:
               # Install python
-              - sudo apt-get update && sudo apt-get install python3 python3-pip
+              - sudo apt-get update && sudo apt-get -y install python3 python3-pip git
+              # We need to setup virtual environment here to solve disable_warning issue
+              - sudo apt-get install -y $(apt-cache search venv | cut -d' ' -f 1)
               # Get the tool from github and install it
               - |
+                  cd
                   git clone https://github.com/CermakM/docker-remote.git
-                  cd docker-remote && pip3 install --user .
-                  export PATH=~/.local/bin/:$PATH
-              # Get info about docker repo TODO .. what info?
-              - REPO_SIZE=$(docker-remote repository --size $DOCKER_REPOSITORY)
+                  cd docker-remote
+                  python3 -m venv venv
+                  source venv/bin/activate
+                  pip install .
+              - set -x
+              # Check the size and tag limit of the repo
+              - REPO_SIZE=${$(docker-remote repository --size $DOCKER_REPOSITORY)%.*}
               - TAG_COUNT=$(docker-remote tags --count $DOCKER_REPOSITORY)
-              - if [[ $TAG_COUNT -gt $TAGS_TO_KEEP ]]; then
-                docker-remote --login $DOCKER_USERNAME:$DOCKER_PASSWORD \
-                tags --assumeno --pop-back --keep $TAGS_TO_KEEP
-                fi
+              - |
+                  if [[ ${REPO_SIZE%.*} -gt $SIZE_LIMIT ]] || [[ $TAG_COUNT -gt $TAG_LIMIT ]]
+                  then
+                      docker-remote --login $DOCKER_USERNAME:$DOCKER_PASSWORD \
+                      tags --assumeno --pop-back --keep $TAG_LIMIT $DOCKER_REPOSITORY
+                  fi
 
 
 
@@ -176,7 +184,7 @@ stages:
       if: type = cron # FIXME
       # Check for repository size when cron job is triggered and clean repo if necessary
       # TODO: When to check? How many tags to preserve? Delete by time / number / size?
-    - name: clean docker
+    - name: clean Docker
       # if: type = cron FIXME
 env:
     global:
@@ -185,7 +193,8 @@ env:
         - AUTHOR_EMAIL="$(git log -1 $TRAVIS_COMMIT --pretty=\"%aE\")"
         - MACHINE_ID=$(cat /var/lib/dbus/machine-id)
         - COVERITY_SCRIPT="coverity.sh"
-        - TAGS_TO_KEEP=9
+        - TAG_LIMIT="7" # FIXME
+        - SIZE_LIMIT="3000" # Limit in MBs
 
 # Allow travis builds only for master branch
 branches:
