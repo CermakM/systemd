@@ -53,7 +53,7 @@ jobs:
         - stage: coverity scan
           before_script: *update
           env:
-              - COVERITY_SCAN_PROJECT_NAME=systemd/systemd
+              - COVERITY_SCAN_PROJECT_NAME=CermakM/systemd # FIXME
               - COVERITY_SCAN_NOTIFICATION_EMAIL="${AUTHOR_EMAIL}"
               - COVERITY_SCAN_BRANCH_PATTERN=travis-docker # FIXME
               - COVERITY_SCRIPT="$CI_TOOL_DIR/coverity.sh"
