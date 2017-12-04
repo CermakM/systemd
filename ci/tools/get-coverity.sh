@@ -3,16 +3,15 @@
 # Download and extract coverity tool
 
 # Environment check
-if [ -z "$COVERITY_SCAN_TOKEN" ] && echo 'ERROR: COVERITY_SCAN_TOKEN must be set' && exit 1
+[ -z "$COVERITY_SCAN_TOKEN" ] && echo 'ERROR: COVERITY_SCAN_TOKEN must be set' && exit 1
 
 # Use default values if not set
 PLATFORM=$(uname)
 
 TOOL_BASE=${TOOL_BASE:="/tmp/coverity-scan-analysis"}
-TOOL_ARCHIVE=${TOOL_BASE:="/tmp/cov-analysis-${PLATFORM}.tgz"}
+TOOL_ARCHIVE=${TOOL_ARCHIVE:="/tmp/cov-analysis-${PLATFORM}.tgz"}
 
 TOOL_URL="https://scan.coverity.com/download/${PLATFORM}"
-
 
 # Get coverity tool
 if [ ! -d $TOOL_BASE ]; then
