@@ -62,8 +62,6 @@ jobs:
               # Token for systemd/systemd FIXME
               # - secure: "UNQLspT89GYWuVKFqW5W5RyqqnYg5RvX20IrNraOddhpdV9nhKBtozrfmhGXDGZwfHGWHt6g7YROlD/NIMvDvThVJIEYvSQiXCoo2zRrwkl2siET5MjPfRG8numiLq0KX47KGmyBJISJZCgDUdNGqqGwgf7AhDN78I3XtgqjFT1z0mGl8n0wiFpKPi7i3nECvF4Mk7xCCHqwByaq0z5G9NkVlOvP1EyCxwv3B6I5Umfch7ibp7iH44YnVXILK+yEry5dMuctYwYkDouR80ChEPQQ5fhhpO4++HJmFuSpfMTeCHpucAd2xwSUijejYeN/GNQ177GxSSk/8hRBGcuSK8T/WJ+KiuJPhZObV8mw+a6+qdQssWY4F9jya5ZKbZ/yTbxjtQ0m4AgtL28P9bEze8pLh16zFMX+hIEuoFSNmJqmtNttfbD5TKyYVZml59s9wvhlvMnlNpRSQva88OAOjXtiA41g+XtTxxpfW9mgd7HYhzSBs1efNiK7PfkANgve7KIYMAmCAqasgb1IIAyX7stOlJH06QOFXNH55PmJLkkKyL3SMQzgryMDWegU+XbS8t43r0x14WLuE7sc9JtnOr/G8hthFaMRp8xLy9aCBwyEIkEsyWa50VMoZDa3Spdb4r1CKBwcGdCbyE4rCehwEIznbfrsSovhwiUds7bbhBU="
           script:
-                # Apply coverity patches
-              - $CI_SCRIPT_DIR/autopatch-coverity.sh $TOOL_DIR
                 # Apply systemd patches
               - $CI_SCRIPT_DIR/autopatch-systemd.sh $TRAVIS_BUILD_DIR
 
@@ -74,8 +72,6 @@ jobs:
 
                 # For kernel version 4.8+
               - sudo sysctl vsyscall=emulate || true
-                # Make sure wget is installed
-              - sudo apt-get update && sudo apt-get -y install wget
                 # Prepare environment for Coverity tool
               - |
                   PLATFORM=`uname`
@@ -83,9 +79,13 @@ jobs:
                   export SCAN_URL="https://scan.coverity.com"
                   export UPLOAD_URL="https://scan.coverity.com/builds"
                   export TOOL_ARCHIVE="/tmp/cov-analysis-${PLATFORM}.tgz"
+
                 # Get Coverity tool
               - $CI_TOOL_DIR/get-coverity.sh
               - TOOL_DIR="$(find $TOOL_BASE -type d -name 'cov-analysis*')"
+
+                # Apply coverity patches
+              - $CI_SCRIPT_DIR/autopatch-coverity.sh $TOOL_DIR
 
                 # Export env variables for Coverity scan
               - env | grep -E "TRAVIS|COV|TOOL|URL" > .cov-env
