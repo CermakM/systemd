@@ -126,7 +126,7 @@ jobs:
               # Check the size and tag limit of the repo
               - REPO_SIZE=$(docker-remote repository --size $DOCKER_REPOSITORY)
               - TAG_COUNT=$(docker-remote tags --count $DOCKER_REPOSITORY)
-              - echo "INFO: Current repository size: $REPO_SIZE in $TAG_COUNT tags"
+              - 'echo -e "\033[33;1mCurrent repository size: $REPO_SIZE in $TAG_COUNT tags \033[0m"'
               # FIXME --assumeyes
               - |
                   if [[ ${REPO_SIZE%.*} -gt $SIZE_LIMIT ]] || [[ $TAG_COUNT -gt $TAG_LIMIT ]]
