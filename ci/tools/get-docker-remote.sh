@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Download and install docker-remote
+# Notes: run with sudo command
+
+# Install python and virtual environment
+sudo apt-get update && sudo apt-get -y install python3 python3-pip git
+sudo apt-get install -y $(apt-cache search venv | cut -d' ' -f 1)
+
+# Get the tool from github and install it
+pushd ~
+git clone https://github.com/CermakM/docker-remote.git
+pushd docker-remote
+
+# We need to setup virtual environment here to solve disable_warning issue
+python3 -m venv venv
+source venv/bin/activate
+pip install .
+
+popd

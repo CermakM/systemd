@@ -6,10 +6,11 @@ set -e
 COVERITY_SCAN_BUILD_COMMAND="ninja -C cov-build"
 
 # Environment check
-# If not set otherwise, use default values here
-TOOL_BASE=${TOOL_BASE:="/tmp/coverity-scan-analysis"}
+# Use default values if not set
 SCAN_URL=${SCAN_URL:="https://scan.coverity.com"}
+TOOL_BASE=${TOOL_BASE:="/tmp/coverity-scan-analysis"}
 UPLOAD_URL=${UPLOAD_URL:="https://scan.coverity.com/builds"}
+
 # These must be set by environment
 echo -e "\033[33;1mNote: COVERITY_SCAN_PROJECT_NAME and COVERITY_SCAN_TOKEN are available on Project Settings page on scan.coverity.com\033[0m"
 [ -z "$COVERITY_SCAN_PROJECT_NAME" ] && echo "ERROR: COVERITY_SCAN_PROJECT_NAME must be set" && exit 1
