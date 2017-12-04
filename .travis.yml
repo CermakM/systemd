@@ -15,11 +15,12 @@ jobs:
               - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
               - docker --version
               - env > .env
-              - find $CI_DIR -maxdepth 1 -type f -exec cp -t . {} +
           script:
               - echo "ENV GIT_SHA ${TRAVIS_COMMIT}" >> Dockerfile
               - echo "ENV MACHINE_ID ${MACHINE_ID}" >> Dockerfile
               - echo "$(git log -1 ${TRAVIS_COMMIT})" > COMMITINFO
+                # Copy content of CI_DIR into WORKDIR
+              - find $CI_DIR -maxdepth 1 -type f -exec cp -t . {} +
                 # Build container for current user
               - |
                   docker build \
@@ -57,7 +58,7 @@ jobs:
               - COVERITY_SCAN_PROJECT_NAME=CermakM/systemd # FIXME
               - COVERITY_SCAN_NOTIFICATION_EMAIL="${AUTHOR_EMAIL}"
               - COVERITY_SCAN_BRANCH_PATTERN=travis-docker # FIXME
-              - COVERITY_SCRIPT="$CI_TOOL_DIR/coverity.sh"
+              - COVERITY_SCRIPT="$CI_SCRIPT_DIR/coverity.sh"
                 # Disable CCACHE for cov-build to compilation units correctly
               - CCACHE_DISABLE=1
               # The next declration is the encrypted COVERITY_SCAN_TOKEN, created
@@ -67,6 +68,8 @@ jobs:
               # Token for systemd/systemd FIXME
               # - secure: "UNQLspT89GYWuVKFqW5W5RyqqnYg5RvX20IrNraOddhpdV9nhKBtozrfmhGXDGZwfHGWHt6g7YROlD/NIMvDvThVJIEYvSQiXCoo2zRrwkl2siET5MjPfRG8numiLq0KX47KGmyBJISJZCgDUdNGqqGwgf7AhDN78I3XtgqjFT1z0mGl8n0wiFpKPi7i3nECvF4Mk7xCCHqwByaq0z5G9NkVlOvP1EyCxwv3B6I5Umfch7ibp7iH44YnVXILK+yEry5dMuctYwYkDouR80ChEPQQ5fhhpO4++HJmFuSpfMTeCHpucAd2xwSUijejYeN/GNQ177GxSSk/8hRBGcuSK8T/WJ+KiuJPhZObV8mw+a6+qdQssWY4F9jya5ZKbZ/yTbxjtQ0m4AgtL28P9bEze8pLh16zFMX+hIEuoFSNmJqmtNttfbD5TKyYVZml59s9wvhlvMnlNpRSQva88OAOjXtiA41g+XtTxxpfW9mgd7HYhzSBs1efNiK7PfkANgve7KIYMAmCAqasgb1IIAyX7stOlJH06QOFXNH55PmJLkkKyL3SMQzgryMDWegU+XbS8t43r0x14WLuE7sc9JtnOr/G8hthFaMRp8xLy9aCBwyEIkEsyWa50VMoZDa3Spdb4r1CKBwcGdCbyE4rCehwEIznbfrsSovhwiUds7bbhBU="
           script:
+                # Copy content of CI_DIR into WORKDIR
+              - find $CI_DIR -maxdepth 1 -type f -exec cp -t . {} +
               - |
                   docker build \
                   --build-arg DOCKER_USER=$USER \
@@ -93,13 +96,6 @@ jobs:
                 # Apply systemd patches
               - $CI_SCRIPT_DIR/autopatch-systemd.sh $TRAVIS_BUILD_DIR
 
-              #- |
-              #    find $TOOL_DIR -regex '.*/compiler-compat-g[c+]+.h' -exec sh -c '\
-              #                           printf "\n\
-              #                                   #if __GNUC__ == 7 && __GNUC_MINOR__ >= 1\n\
-              #                                   #define _Float128 long double\n\
-              #                                   #endif\n" >> $1' -- {} \;
-
                 # Export env variables for Coverity scan
               - env | grep -E "TRAVIS|COV|TOOL|URL" > .cov-env
               - |
@@ -115,6 +111,7 @@ jobs:
               - docker exec -it travis_coverity_scan ${COVERITY_SCRIPT}
                 # Remove cov-build directory - not necessary to commit
               - docker exec -it travis_coverity_scan rm -rf cov-build
+
         - stage: clean docker
           env:
             - SIZE_LIMIT="3000" # Limit in MBs
