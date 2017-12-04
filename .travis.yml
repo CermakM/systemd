@@ -89,6 +89,8 @@ jobs:
 
                 # Apply coverity patches
               - $CI_SCRIPT_DIR/autopatch-coverity.sh $TOOL_DIR
+                # Apply systemd patches
+              - $CI_SCRIPT_DIR/autopatch-systemd.sh $TRAVIS_BUILD_DIR
 
               #- |
               #    find $TOOL_DIR -regex '.*/compiler-compat-g[c+]+.h' -exec sh -c '\
