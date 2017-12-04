@@ -119,10 +119,13 @@ jobs:
             - SIZE_LIMIT="3000" # Limit in MBs
             - TAG_LIMIT="3" # Number of tags to be kept at the time
           script:
+                # Get docker-remote tool and setup venv
+              - sudo $CI_TOOL_DIR/get-docker-remote.sh
+                # Activate virtual environment
+              - source venv/bin/activate
               # Check the size and tag limit of the repo
               - REPO_SIZE=${$(docker-remote repository --size $DOCKER_REPOSITORY)%.*}
               - TAG_COUNT=$(docker-remote tags --count $DOCKER_REPOSITORY)
-              - exec CI_TOOL_DIR/get-docker-remote.sh
               # FIXME --assumeyes
               - |
                   if [[ ${REPO_SIZE%.*} -gt $SIZE_LIMIT ]] || [[ $TAG_COUNT -gt $TAG_LIMIT ]]
