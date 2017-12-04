@@ -147,10 +147,10 @@ stages:
       if: env(COVERITY_SCAN_BRANCH) != 1 AND type = cron # FIXME
       # This stage runs separately, the resulting container will not be pushed to Docker Hub
     - name: coverity scan
-      if: type = cron # FIXME
+      # if: type = cron # FIXME
       # Check for repository size when cron job is triggered and clean repo if necessary
     - name: clean Docker
-      # if: type = cron FIXME
+      if: type = cron FIXME
 env:
     global:
         - DOCKER_REPOSITORY=$DOCKER_USERNAME/systemd
