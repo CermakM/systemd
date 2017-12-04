@@ -13,6 +13,9 @@ TOOL_ARCHIVE=${TOOL_ARCHIVE:="/tmp/cov-analysis-${PLATFORM}.tgz"}
 
 TOOL_URL="https://scan.coverity.com/download/${PLATFORM}"
 
+# Make sure wget is installed
+sudo apt-get update && sudo apt-get -y install wget
+
 # Get coverity tool
 if [ ! -d $TOOL_BASE ]; then
   # Download Coverity Scan Analysis Tool
