@@ -50,17 +50,15 @@ jobs:
         - stage: coverity scan
           before_script: *update
           env:
-              - COVERITY_SCAN_PROJECT_NAME=CermakM/systemd # FIXME
+              - COVERITY_SCAN_PROJECT_NAME=systemd/systemd
               - COVERITY_SCAN_NOTIFICATION_EMAIL="${AUTHOR_EMAIL}"
-              - COVERITY_SCAN_BRANCH_PATTERN=travis-docker # FIXME
+              - COVERITY_SCAN_BRANCH_PATTERN=master
               # Disable CCACHE for cov-build to compilation units correctly
               - CCACHE_DISABLE=1
-              # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+              # Token for systemd/systemd Coverity Scan Analysis
+              #   The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
               #   via the "travis encrypt" command using the project repo's public key
-              #   Token for test systemd project
-              - secure: "FOfIhGZcIViZtG7hHu5WSSgtuD0BcIr+AkTvBCosFX4cgNAxy7SAXcoq/7Nod2i6gceSY0OyoDVt2MY5Iy9wfU6wMklkpqZim/F/sdihrBjJWnybwVPROcZrXeCjJbdo5ak57KQ5p+hKPJRnPlTSUKzF14VXq6SGJV+jJq+wHj7r8NdC2+6owsh5zFrLarOL5d7yzPbQVBXQtkf2h+0o+ylKNT1OTASl4ba/HIgJaWYu1QQwiyNF7lmtZ2QEQG4t4+AYfI8//lDdiEv/sDAPfqmR+5hO/NCAn+nCIYbXULQoiuUg4pZ+As7lQS9Ti0yTlnnac7xo8TetNCNF/oZLQY5IXpZCHIFFJWI+9lxN+Ni2g79iKda9a9U1dyCJDd8kBixFvD2nFTjODjNE6GaADMTj6sSyaxLoBAJA0DZeGk95aqZK2BJHU+jqHTDL62S3etpu/Xsq/xCRzPQHL1NXMtS/Ne9v7LAEVlqpqPI1xAI+rJL2m5ZaAPM3MeufB2pleBcSHBBnaiy0ZPnfMVdZFWPPog7uoJTZsVB7ze4mwoeHKRMtjTfMYlGwf0hkPWyeUgn2m1Dvppq+vEeBI768g+LXXDytiqqjYdWnBYl4UBFnjjlufHvkZtZrg5psWEwhhHij+cqb4x7uy7avuVEX5GbGPZVPbjU8I0VpND0pl68="
-              # Token for systemd/systemd FIXME
-              # - secure: "UNQLspT89GYWuVKFqW5W5RyqqnYg5RvX20IrNraOddhpdV9nhKBtozrfmhGXDGZwfHGWHt6g7YROlD/NIMvDvThVJIEYvSQiXCoo2zRrwkl2siET5MjPfRG8numiLq0KX47KGmyBJISJZCgDUdNGqqGwgf7AhDN78I3XtgqjFT1z0mGl8n0wiFpKPi7i3nECvF4Mk7xCCHqwByaq0z5G9NkVlOvP1EyCxwv3B6I5Umfch7ibp7iH44YnVXILK+yEry5dMuctYwYkDouR80ChEPQQ5fhhpO4++HJmFuSpfMTeCHpucAd2xwSUijejYeN/GNQ177GxSSk/8hRBGcuSK8T/WJ+KiuJPhZObV8mw+a6+qdQssWY4F9jya5ZKbZ/yTbxjtQ0m4AgtL28P9bEze8pLh16zFMX+hIEuoFSNmJqmtNttfbD5TKyYVZml59s9wvhlvMnlNpRSQva88OAOjXtiA41g+XtTxxpfW9mgd7HYhzSBs1efNiK7PfkANgve7KIYMAmCAqasgb1IIAyX7stOlJH06QOFXNH55PmJLkkKyL3SMQzgryMDWegU+XbS8t43r0x14WLuE7sc9JtnOr/G8hthFaMRp8xLy9aCBwyEIkEsyWa50VMoZDa3Spdb4r1CKBwcGdCbyE4rCehwEIznbfrsSovhwiUds7bbhBU="
+              - secure: "UNQLspT89GYWuVKFqW5W5RyqqnYg5RvX20IrNraOddhpdV9nhKBtozrfmhGXDGZwfHGWHt6g7YROlD/NIMvDvThVJIEYvSQiXCoo2zRrwkl2siET5MjPfRG8numiLq0KX47KGmyBJISJZCgDUdNGqqGwgf7AhDN78I3XtgqjFT1z0mGl8n0wiFpKPi7i3nECvF4Mk7xCCHqwByaq0z5G9NkVlOvP1EyCxwv3B6I5Umfch7ibp7iH44YnVXILK+yEry5dMuctYwYkDouR80ChEPQQ5fhhpO4++HJmFuSpfMTeCHpucAd2xwSUijejYeN/GNQ177GxSSk/8hRBGcuSK8T/WJ+KiuJPhZObV8mw+a6+qdQssWY4F9jya5ZKbZ/yTbxjtQ0m4AgtL28P9bEze8pLh16zFMX+hIEuoFSNmJqmtNttfbD5TKyYVZml59s9wvhlvMnlNpRSQva88OAOjXtiA41g+XtTxxpfW9mgd7HYhzSBs1efNiK7PfkANgve7KIYMAmCAqasgb1IIAyX7stOlJH06QOFXNH55PmJLkkKyL3SMQzgryMDWegU+XbS8t43r0x14WLuE7sc9JtnOr/G8hthFaMRp8xLy9aCBwyEIkEsyWa50VMoZDa3Spdb4r1CKBwcGdCbyE4rCehwEIznbfrsSovhwiUds7bbhBU="
           script:
                 # Apply systemd patches
               - $CI_SCRIPT_DIR/autopatch-systemd.sh $TRAVIS_BUILD_DIR
@@ -107,18 +105,17 @@ jobs:
           script:
                 # Get docker-remote tool and setup venv
               - sudo $CI_TOOL_DIR/get-docker-remote.sh
-                # Activate virtual environment
+                # Activate virtual environment to be able to use docker-remote safely
               - source venv/bin/activate
               # Check the size and tag limit of the repo
               - REPO_SIZE=$(docker-remote repository --size $DOCKER_REPOSITORY)
               - TAG_COUNT=$(docker-remote tags --count $DOCKER_REPOSITORY)
               - 'echo -e "\033[33;1mCurrent repository size: $REPO_SIZE in $TAG_COUNT tags \033[0m"'
-              # FIXME --assumeyes
               - |
                   if [[ ${REPO_SIZE%.*} -gt $SIZE_LIMIT ]] || [[ $TAG_COUNT -gt $TAG_LIMIT ]]
                   then
                       docker-remote --login $DOCKER_USERNAME:$DOCKER_PASSWORD \
-                      tags --assumeno --pop-back --keep $TAG_LIMIT $DOCKER_REPOSITORY
+                      tags --assumeyes --pop-back --keep $TAG_LIMIT $DOCKER_REPOSITORY
                   fi
 
 
@@ -126,17 +123,18 @@ jobs:
 # Specify the order of stages and conditions
 stages:
     - name: build docker image
-      if: env(COVERITY_SCAN_BRANCH) != 1 AND type = cron # FIXME
+      if: env(COVERITY_SCAN_BRANCH) != 1 AND type != cron
     - name: build
-      if: env(COVERITY_SCAN_BRANCH) != 1 AND type = cron # FIXME
+      if: env(COVERITY_SCAN_BRANCH) != 1 AND type != cron
     - name: test
-      if: env(COVERITY_SCAN_BRANCH) != 1 AND type = cron # FIXME
-      # This stage runs separately, the resulting container will not be pushed to Docker Hub
+      if: env(COVERITY_SCAN_BRANCH) != 1 AND type != cron
+
+      # These stages runs separately, the resulting container will not be pushed to Docker Hub
     - name: coverity scan
-      # if: type = cron # FIXME
-      # Check for repository size when cron job is triggered and clean repo if necessary
+      if: type = cron
+      # Check for repository size and clean Docker repo if necessary
     - name: clean Docker
-      if: type = cron FIXME
+      if: type = cron
 env:
     global:
         - DOCKER_REPOSITORY=$DOCKER_USERNAME/systemd
@@ -152,9 +150,9 @@ env:
 
 
 # Allow travis builds only for master branch
-branches:
-    only:
-        travis-docker # FIXME
+# branches:
+#     only:
+#         master
 
 # notifications:
 #   email:
