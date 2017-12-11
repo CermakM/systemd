@@ -13,12 +13,14 @@ jobs:
               # The machine id will be passed to Dockerfile for later checks
               - MACHINE_ID=$(cat /var/lib/dbus/machine-id)
           before_script: &update
+              - echo "$FEDORA_VERSION"
               # Ensure the latest version of docker is installed
               - sudo apt-get update
               - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
               - docker --version
               - env > .env
           script:
+              - echo "$FEDORA_VERSION"
                 # Copy content of CI_DIR into WORKDIR
               - find $CI_DIR -maxdepth 1 -type f -exec cp -t . {} +
                 # Apply the custom Fedora version
@@ -134,11 +136,11 @@ jobs:
 # Specify the order of stages and conditions
 stages:
     - name: build docker image
-      if: env(FEDORA_VERSION) IN (25 26 27 latest rawhide) AND type != cron
+      if: env(FEDORA_VERSION) IS NOT blank AND type != cron
     - name: build
-      if: env(FEDORA_VERSION) IN (25 26 27 latest rawhide) AND type != cron
+      if: env(FEDORA_VERSION) IS NOT blank AND type = cron  # FIXME
     - name: test
-      if: env(FEDORA_VERSION) IN (25 26 27 latest rawhide) AND type != cron
+      if: env(FEDORA_VERSION) IS NOT blank AND type = cron  # FIXME
 
       # These stages run separately, the resulting container will not be pushed to Docker Hub
     - name: coverity scan
