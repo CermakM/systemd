@@ -138,9 +138,9 @@ stages:
     - name: build docker image
       if: env(FEDORA_VERSION) IN (25, 26, 27, latest, rawhide) AND type != cron
     - name: build
-      if: (NOT [ -z $FEDORA_VERSION ]) AND type != cron
+      if: env(FEDORA_VERSION) IN (25, 26, 27, latest, rawhide) AND type != cron
     - name: test
-      if: (env(FEDORA_VERSION) IN (25, 26, 27, latest, rawhide)) AND type != cron
+      if: env(FEDORA_VERSION) IN (25, 26, 27, latest, rawhide) AND type != cron
 
       # These stages run separately, the resulting container will not be pushed to Docker Hub
     - name: coverity scan
