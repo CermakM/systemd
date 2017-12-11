@@ -19,11 +19,15 @@ jobs:
               - docker --version
               - env > .env
           script:
-              - echo "ENV GIT_SHA ${TRAVIS_COMMIT}" >> Dockerfile
-              - echo "ENV MACHINE_ID ${MACHINE_ID}" >> Dockerfile
-              - echo "$(git log -1 ${TRAVIS_COMMIT})" > COMMITINFO
                 # Copy content of CI_DIR into WORKDIR
               - find $CI_DIR -maxdepth 1 -type f -exec cp -t . {} +
+                # Apply the custom Fedora version
+                # Apply fix to FEDORA_VERSION if Travis CI fails to skip the build
+              - FEDORA_VERSION=${FEDORA_VERSION:-latest}
+              - sed -i -r -e "/^FROM/ s/(fedora:)(.*)/\1$FEDORA_VERSION/" Dockerfile
+              - echo "ENV GIT_SHA ${TRAVIS_COMMIT}" >> Dockerfile
+              - echo "ENV MACHINE_ID ${MACHINE_ID}" >> Dockerfile
+              - echo "$(git log -1 ${TRAVIS_COMMIT})" >> COMMITINFO
                 # Build docker container
               - $CI_SCRIPT_DIR/build-docker-image.sh
 
@@ -130,11 +134,11 @@ jobs:
 # Specify the order of stages and conditions
 stages:
     - name: build docker image
-      if: env(COVERITY_SCAN_BRANCH) != 1 AND type != cron
+      if: env(FEDORA_VERSION) IN (25 26 27 latest rawhide) AND type != cron
     - name: build
-      if: env(COVERITY_SCAN_BRANCH) != 1 AND type != cron
+      if: env(FEDORA_VERSION) IN (25 26 27 latest rawhide) AND type != cron
     - name: test
-      if: env(COVERITY_SCAN_BRANCH) != 1 AND type != cron
+      if: env(FEDORA_VERSION) IN (25 26 27 latest rawhide) AND type != cron
 
       # These stages run separately, the resulting container will not be pushed to Docker Hub
     - name: coverity scan
@@ -155,11 +159,12 @@ env:
         - AUTHOR_NAME="$(git log -1 $TRAVIS_COMMIT --pretty=\"%aN\")"
         - AUTHOR_EMAIL="$(git log -1 $TRAVIS_COMMIT --pretty=\"%aE\")"
 
-
         - CI_DIR="$TRAVIS_BUILD_DIR/travis-ci"
         - CI_TOOL_DIR="$CI_DIR/tools"
         - CI_PATCH_DIR="$CI_DIR/patches"
         - CI_SCRIPT_DIR="$CI_DIR/scripts"
+
+        - FEDORA_VERSION=$($CI_SCRIPT_DIR/version-from-commit.sh)
 
 # Allow travis builds only for master branch
 # branches:
