@@ -140,10 +140,10 @@ stages:
 
       # These stages run separately, the resulting container will not be pushed to Docker Hub
     - name: coverity scan
-      if: type = cron OR env(RUN_COVERITY)
+      if: type = cron OR env(RUN_COVERITY) = 1
       # Check for repository size and clean Docker repo if necessary
     - name: clean Docker
-      if: type = cron OR env(RUN_COVERITY)
+      if: type = cron OR env(RUN_COVERITY) = 1
 
 env:
     global:
