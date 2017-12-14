@@ -23,9 +23,6 @@ jobs:
               - echo "$FEDORA_VERSION"
                 # Copy content of CI_DIR into WORKDIR
               - find $CI_DIR -maxdepth 1 -type f -exec cp -t . {} +
-                # Apply the custom Fedora version
-                # Apply fix to FEDORA_VERSION if Travis CI fails to skip the build
-              - FEDORA_VERSION=${FEDORA_VERSION:-latest}
               - sed -i -r -e "/^FROM/ s/(fedora:)(.*)/\1$FEDORA_VERSION/" Dockerfile
               - echo "ENV GIT_SHA ${TRAVIS_COMMIT}" >> Dockerfile
               - echo "ENV MACHINE_ID ${MACHINE_ID}" >> Dockerfile
@@ -144,10 +141,10 @@ stages:
 
       # These stages run separately, the resulting container will not be pushed to Docker Hub
     - name: coverity scan
-      if: type = cron
+      if: type = cron OR env(RUN_COVERITY)
       # Check for repository size and clean Docker repo if necessary
     - name: clean Docker
-      if: type = cron
+      if: type = cron or env(RUN_COVERITY)
 
 env:
     global:
@@ -166,7 +163,14 @@ env:
         - CI_PATCH_DIR="$CI_DIR/patches"
         - CI_SCRIPT_DIR="$CI_DIR/scripts"
 
-        - FEDORA_VERSION=$($CI_SCRIPT_DIR/version-from-commit.sh)
+          # Parse commit message for optional meta commands
+        - FEDORA_VERSION=$($CI_SCRIPT_DIR/parse-commit-message.sh VERSION)
+        - COVERITY_COMMIT_FLAG=$($CI_SCRIPT_DIR/parse-commit-message.sh COVERITY)
+
+          # Parse labels from git
+        - HAS_COVERITY_LABEL=$($CI_SCRIPT_DIR/has-git-label.sh coverity)
+
+        - RUN_COVERITY=$(( COVERITY_COMMIT_FLAG | HAS_COVERITY_LABEL ))
 
 # Allow travis builds only for master branch
 # branches:
