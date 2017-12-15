@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: LGPL-2.1+ */
 /***
   This file is part of systemd.
 
@@ -902,9 +903,9 @@ static int run_gdb(sd_journal *j) {
         if (r < 0)
                 return log_error_errno(r, "Failed to retrieve COREDUMP_EXE field: %m");
 
-        assert(len > strlen("COREDUMP_EXE="));
-        data += strlen("COREDUMP_EXE=");
-        len -= strlen("COREDUMP_EXE=");
+        assert(len > STRLEN("COREDUMP_EXE="));
+        data += STRLEN("COREDUMP_EXE=");
+        len -= STRLEN("COREDUMP_EXE=");
 
         exe = strndup(data, len);
         if (!exe)
@@ -1060,7 +1061,7 @@ int main(int argc, char *argv[]) {
         if (r < 0)
                 goto end;
 
-        if (_unlikely_(log_get_max_level() >= LOG_DEBUG)) {
+        if (DEBUG_LOGGING) {
                 _cleanup_free_ char *filter;
 
                 filter = journal_make_match_string(j);

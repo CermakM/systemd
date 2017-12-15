@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: LGPL-2.1+ */
 #pragma once
 
 /***
@@ -67,8 +68,6 @@ struct Mount {
         bool just_mounted:1;
         bool just_changed:1;
 
-        bool reset_accounting:1;
-
         bool sloppy_options;
 
         bool lazy_unmount;
@@ -110,5 +109,3 @@ MountExecCommand mount_exec_command_from_string(const char *s) _pure_;
 
 const char* mount_result_to_string(MountResult i) _const_;
 MountResult mount_result_from_string(const char *s) _pure_;
-
-const char *mount_get_fstype(const Mount *m);

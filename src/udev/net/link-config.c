@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: LGPL-2.1+ */
 /***
  This file is part of systemd.
 
@@ -170,12 +171,12 @@ static int load_link(link_config_ctx *ctx, const char *filename) {
         link->port = _NET_DEV_PORT_INVALID;
         link->autonegotiation = -1;
 
-        memset(&link->features, -1, sizeof(link->features));
+        memset(&link->features, 0xFF, sizeof(link->features));
 
         r = config_parse(NULL, filename, file,
                          "Match\0Link\0Ethernet\0",
                          config_item_perf_lookup, link_config_gperf_lookup,
-                         false, false, true, link);
+                         CONFIG_PARSE_WARN, link);
         if (r < 0)
                 return r;
         else
@@ -185,6 +186,8 @@ static int load_link(link_config_ctx *ctx, const char *filename) {
                 return -ERANGE;
 
         link->filename = strdup(filename);
+        if (!link->filename)
+                return log_oom();
 
         LIST_PREPEND(links, ctx->links, link);
         link = NULL;
@@ -327,7 +330,7 @@ static bool should_rename(struct udev_device *device, bool respect_predictable) 
                 /* the kernel claims to have given a predictable name */
                 if (respect_predictable)
                         return false;
-                /* fall through */
+                _fallthrough_;
         case NET_NAME_ENUM:
         default:
                 /* the name is known to be bad, or of an unknown type */

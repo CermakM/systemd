@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: LGPL-2.1+ */
 /***
   This file is part of systemd.
 
@@ -382,19 +383,14 @@ int unit_name_path_escape(const char *f, char **ret) {
         if (STR_IN_SET(p, "/", ""))
                 s = strdup("-");
         else {
-                char *e;
-
-                if (!path_is_safe(p))
+                if (!path_is_normalized(p))
                         return -EINVAL;
 
                 /* Truncate trailing slashes */
-                e = endswith(p, "/");
-                if (e)
-                        *e = 0;
+                delete_trailing_chars(p, "/");
 
                 /* Truncate leading slashes */
-                if (p[0] == '/')
-                        p++;
+                p = skip_leading_chars(p, "/");
 
                 s = unit_name_escape(p);
         }
@@ -437,7 +433,7 @@ int unit_name_path_unescape(const char *f, char **ret) {
                 if (!s)
                         return -ENOMEM;
 
-                if (!path_is_safe(s)) {
+                if (!path_is_normalized(s)) {
                         free(s);
                         return -EINVAL;
                 }
