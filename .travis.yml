@@ -6,6 +6,16 @@ sudo: required
 services:
     - docker
 
+before_install:
+    env:
+        # Encrypted GitHub token
+        - secure: "YYDXEo+5YOnII7pYg0EibBdYlDUApumPua5hSjF5X3L2FP4dJm1hqA+m/MIUC0nKlXMHOjN2YuQXERuYtCO7+nD/GmunFLUfYjm1iCVahWddplS6b2kvJCxeAa4eH8qXlYzMk6jIFxuV2dLqqPgrIabVs6C1n5oD2JQsUi2av7Du4HN1jcZMynelfKg9A60ZxB9uknhcWj7P11iHwWLX4icJrYnCatvU3lFZncNDYc3QTOpKLsnhX5NI2iro5Q9YdtTpg7VToE13izgOH5RxFsTV/Xwu1HV8aKoGuGu6l3XKyh9Jfl5MUrsjfdW3CTWKKHI5/ipenSOKGnAVHNQPs70hlJ+7KBc8wjxi0XjsT0MxvSdjDB7vF7GsZJSz6uWgpYuyxdR5vAJR1+TBg5hAb6nWg5g66HOJC0XOphY146TzQVdUNbHG/NVw1ToLg0QD96dwJQDAjiMC51a6shQTRBnWpmIokubGxNFN3cb43751HWGqgDcZoea244uPVqyNZDx2KB5dbecsO0RVbxtFGzQbmsmI0OuAluxpz1OCEtFv0LQR3aMi/JpU58bo+RXMi41492/R2w49dxzr3bm5EOSnCSCWzuGZW788HQy+6cVqa5+00QVXfZtR7Cv72TlRoho6oUkZOkvcCDwCrUra2CmXFjYWiasYeORXMxPWABc="
+    install: ruby gem
+    script:
+        # A hack script for handling git labels
+        - sudo gem install travis
+        - $CI_SCRIPT_DIR/coverity-stage-check.sh
+
 jobs:
     include:
         - stage: build docker image
@@ -139,11 +149,12 @@ stages:
       if: type != cron
 
       # These stages run separately, the resulting container will not be pushed to Docker Hub
+      # This stage will only run on special conditions
     - name: coverity scan
-      if: type = cron OR env(RUN_COVERITY) = 1
+
       # Check for repository size and clean Docker repo if necessary
     - name: clean Docker
-      if: type = cron OR env(RUN_COVERITY) = 1
+      if: type = cron
 
 env:
     global:
@@ -165,11 +176,6 @@ env:
           # Parse commit message for optional meta commands
         - FEDORA_VERSION=$($CI_SCRIPT_DIR/parse-commit-message.sh VERSION)
         - COVERITY_COMMIT_FLAG=$($CI_SCRIPT_DIR/parse-commit-message.sh COVERITY)
-
-          # Parse labels from git
-        - HAS_COVERITY_LABEL=$($CI_SCRIPT_DIR/has-git-label.sh coverity)
-
-        - RUN_COVERITY=$(( COVERITY_COMMIT_FLAG | HAS_COVERITY_LABEL ))
 
 # Allow travis builds only for master branch
 # branches:
