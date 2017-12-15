@@ -5,8 +5,6 @@
 #  and git labels decides whether to run coverity - this allows for real-time
 #  midifications of build
 
-set -x
-
 # Environment check
 [ -z "$TRAVIS_EVENT_TYPE" ] && echo "ERROR: TRAVIS_EVENT_TYPE environment variable has to be set" >&2 && exit 1
 [ -z "$TRAVIS_BUILD_NUMBER" ] && echo "ERROR: TRAVIS_BUILD_NUMBER environment variable has to be set" >&2 && exit 1
@@ -25,7 +23,7 @@ COVERITY_STAGE_NUMBER=$(travis show $TRAVIS_BUILD_NUMBER -r $TRAVIS_REPO_SLUG | 
 
 # Otherwise allow only for pull request with coverity label
 if [ "${TRAVIS_EVENT_TYPE,,}" != 'pull_request' ]; then
-	travis login -g $GITHUB_TOKEN  # FIXME Get systemd api token
+	travis login -g $GITHUB_TOKEN
 	travis cancel "$COVERITY_STAGE_NUMBER"
 	exit $?
 fi
@@ -35,7 +33,7 @@ HAS_COVERITY_LABEL=$($CI_SCRIPT_DIR/has-git-label.sh coverity)
 
 if [ $HAS_COVERITY_LABEL = 0 ]; then
 	# Cancel coverity stage
-	travis login -g $GITHUB_TOKEN  # FIXME Get systemd api token
+	travis login -g $GITHUB_TOKEN
 	travis cancel "$COVERITY_STAGE_NUMBER"
 	exit $?
 fi

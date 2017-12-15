@@ -8,7 +8,7 @@ jobs:
         - stage: initialization
           language: ruby
           env:
-              # Encrypted GitHub token
+              # Encrypted GitHub token FIXME - systemd token needed
               - secure: "YYDXEo+5YOnII7pYg0EibBdYlDUApumPua5hSjF5X3L2FP4dJm1hqA+m/MIUC0nKlXMHOjN2YuQXERuYtCO7+nD/GmunFLUfYjm1iCVahWddplS6b2kvJCxeAa4eH8qXlYzMk6jIFxuV2dLqqPgrIabVs6C1n5oD2JQsUi2av7Du4HN1jcZMynelfKg9A60ZxB9uknhcWj7P11iHwWLX4icJrYnCatvU3lFZncNDYc3QTOpKLsnhX5NI2iro5Q9YdtTpg7VToE13izgOH5RxFsTV/Xwu1HV8aKoGuGu6l3XKyh9Jfl5MUrsjfdW3CTWKKHI5/ipenSOKGnAVHNQPs70hlJ+7KBc8wjxi0XjsT0MxvSdjDB7vF7GsZJSz6uWgpYuyxdR5vAJR1+TBg5hAb6nWg5g66HOJC0XOphY146TzQVdUNbHG/NVw1ToLg0QD96dwJQDAjiMC51a6shQTRBnWpmIokubGxNFN3cb43751HWGqgDcZoea244uPVqyNZDx2KB5dbecsO0RVbxtFGzQbmsmI0OuAluxpz1OCEtFv0LQR3aMi/JpU58bo+RXMi41492/R2w49dxzr3bm5EOSnCSCWzuGZW788HQy+6cVqa5+00QVXfZtR7Cv72TlRoho6oUkZOkvcCDwCrUra2CmXFjYWiasYeORXMxPWABc="
           install: gem install travis
           script:
@@ -71,9 +71,9 @@ jobs:
           compiler: gcc
           before_script: *update
           env:
-              - COVERITY_SCAN_PROJECT_NAME=systemd/systemd
+              - COVERITY_SCAN_PROJECT_NAME="$TRAVIS_REPO_SLUG"
               - COVERITY_SCAN_NOTIFICATION_EMAIL="${AUTHOR_EMAIL}"
-              - COVERITY_SCAN_BRANCH_PATTERN=master
+              - COVERITY_SCAN_BRANCH_PATTERN="$TRAVIS_BRANCH"
               # Disable CCACHE for cov-build to compilation units correctly
               - CCACHE_DISABLE=1
               # Token for systemd/systemd Coverity Scan Analysis
@@ -82,7 +82,7 @@ jobs:
               - secure: "UNQLspT89GYWuVKFqW5W5RyqqnYg5RvX20IrNraOddhpdV9nhKBtozrfmhGXDGZwfHGWHt6g7YROlD/NIMvDvThVJIEYvSQiXCoo2zRrwkl2siET5MjPfRG8numiLq0KX47KGmyBJISJZCgDUdNGqqGwgf7AhDN78I3XtgqjFT1z0mGl8n0wiFpKPi7i3nECvF4Mk7xCCHqwByaq0z5G9NkVlOvP1EyCxwv3B6I5Umfch7ibp7iH44YnVXILK+yEry5dMuctYwYkDouR80ChEPQQ5fhhpO4++HJmFuSpfMTeCHpucAd2xwSUijejYeN/GNQ177GxSSk/8hRBGcuSK8T/WJ+KiuJPhZObV8mw+a6+qdQssWY4F9jya5ZKbZ/yTbxjtQ0m4AgtL28P9bEze8pLh16zFMX+hIEuoFSNmJqmtNttfbD5TKyYVZml59s9wvhlvMnlNpRSQva88OAOjXtiA41g+XtTxxpfW9mgd7HYhzSBs1efNiK7PfkANgve7KIYMAmCAqasgb1IIAyX7stOlJH06QOFXNH55PmJLkkKyL3SMQzgryMDWegU+XbS8t43r0x14WLuE7sc9JtnOr/G8hthFaMRp8xLy9aCBwyEIkEsyWa50VMoZDa3Spdb4r1CKBwcGdCbyE4rCehwEIznbfrsSovhwiUds7bbhBU="
           script:
                 # Apply systemd patches
-              - $CI_SCRIPT_DIR/autopatch-systemd.sh $TRAVIS_BUILD_DIR
+              - $CI_SCRIPT_DIR/autopatch-systemd.sh "$TRAVIS_BUILD_DIR"
 
                 # Copy content of CI_DIR into WORKDIR
               - find $CI_DIR -maxdepth 1 -type f -exec cp -t . {} +
@@ -104,7 +104,7 @@ jobs:
               - TOOL_DIR="$(find $TOOL_BASE -type d -name 'cov-analysis*')"
 
                 # Apply coverity patches
-              - $CI_SCRIPT_DIR/autopatch-coverity.sh $TOOL_DIR
+              - $CI_SCRIPT_DIR/autopatch-coverity.sh "$TOOL_DIR"
 
                 # Export env variables for Coverity scan
               - env | grep -E "TRAVIS|COV|TOOL|URL" > .cov-env
@@ -125,7 +125,7 @@ jobs:
               - "3.6"
           env:
             - SIZE_LIMIT="3000" # Limit in MBs
-            - TAG_LIMIT="7" # FIXME Number of tags to be kept at the time
+            - TAG_LIMIT="3" # Number of tags to be kept at the time
           script:
                 # Get docker-remote tool and setup venv
               - sudo $CI_TOOL_DIR/get-docker-remote.sh
@@ -150,11 +150,11 @@ stages:
     - name: initialization
 
     - name: build docker image
-      if: type = cron  #FIXME
+      if: type != cron
     - name: build
-      if: type = cron  #FIXME
+      if: type != cron
     - name: test
-      if: type = cron  #FIXME
+      if: type != cron
 
       # These stages run separately, the resulting container will not be pushed to Docker Hub
       # This stage will only run on special conditions
@@ -186,10 +186,6 @@ env:
         - COVERITY_COMMIT_FLAG=$($CI_SCRIPT_DIR/parse-commit-message.sh COVERITY)
         - CLEAN_COMMIT_FLAG=($CI_SCRIPT_DIR/parse-commit-message.sh CLEAN)
 
-# Allow travis builds only for master branch
-# branches:
-#     only:
-#         master
 
 # notifications:
 #   email:

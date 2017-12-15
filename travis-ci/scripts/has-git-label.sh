@@ -2,8 +2,6 @@
 
 # Parse git label for Travis CI metadata
 
-set -x
-
 # Check environment
 [ -z "$TRAVIS_COMMIT_MESSAGE" ] && echo "ERROR: TRAVIS_COMMIT_MESSAGE must be set" >&2 && exit 1
 [ -z "$TRAVIS_PULL_REQUEST" ] && echo "ERROR: TRAVIS_PULL_REQUEST must be set" >&2 && exit 1
