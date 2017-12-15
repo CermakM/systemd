@@ -19,7 +19,7 @@ set -x
 COVERITY_STAGE_NUMBER=5
 
 # Otherwise allow only for pull request with coverity label
-if [ "$TRAVIS_EVENT_TYPE" != 'pull' ]; then
+if [ "${TRAVIS_EVENT_TYPE,,}" != 'pull_request' ]; then
 	travis login -g $GITHUB_TOKEN  # FIXME Get systemd api token
 	travis cancel "$TRAVIS_BUILD_NUMBER.$COVERITY_STAGE_NUMBER"
 	exit $?

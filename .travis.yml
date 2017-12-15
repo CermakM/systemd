@@ -150,11 +150,11 @@ stages:
     - name: initialization
 
     - name: build docker image
-      if: type != cron
+      if: type = cron  #FIXME
     - name: build
-      if: type != cron
+      if: type = cron  #FIXME
     - name: test
-      if: type != cron
+      if: type = cron  #FIXME
 
       # These stages run separately, the resulting container will not be pushed to Docker Hub
       # This stage will only run on special conditions
