@@ -8,13 +8,13 @@
 set -x
 
 # Environment check
-[ -z $TRAVIS_EVENT_TYPE ] && echo "ERROR: TRAVIS_EVENT_TYPE environment variable has to be set" >&2 && exit 1
-[ -z $TRAVIS_BUILD_NUMBER ] && echo "ERROR: TRAVIS_BUILD_NUMBER environment variable has to be set" >&2 && exit 1
-[ -z $TRAVIS_REPO_SLUG ] && echo "ERROR: TRAVIS_REPO_SLUG environment variable has to be set" >&2 && exit 1
+[ -z "$TRAVIS_EVENT_TYPE" ] && echo "ERROR: TRAVIS_EVENT_TYPE environment variable has to be set" >&2 && exit 1
+[ -z "$TRAVIS_BUILD_NUMBER" ] && echo "ERROR: TRAVIS_BUILD_NUMBER environment variable has to be set" >&2 && exit 1
+[ -z "$TRAVIS_REPO_SLUG" ] && echo "ERROR: TRAVIS_REPO_SLUG environment variable has to be set" >&2 && exit 1
 
-[ -z $GITHUB_TOKEN ] && echo "ERROR: GITHUB_TOKEN environment variable has to be set" >&2 && exit 1
+[ -z "$GITHUB_TOKEN" ] && echo "ERROR: GITHUB_TOKEN environment variable has to be set" >&2 && exit 1
 
-[ -z $CI_SCRIPT_DIR ] && echo "ERROR: CI_SCRIPT_DIR environment variable has to be set" >&2 && exit 1
+[ -z "$CI_SCRIPT_DIR" ] && echo "ERROR: CI_SCRIPT_DIR environment variable has to be set" >&2 && exit 1
 
 # Coverity meta command in commit message and cron job guarantees coverity to run
 [[ $COVERITY_COMMIT_FLAG -eq 1  || "$TRAVIS_EVENT_TYPE" = 'cron' ]] && exit 0

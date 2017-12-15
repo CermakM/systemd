@@ -7,12 +7,13 @@ set -x
 # Check environment
 [ -z "$TRAVIS_COMMIT_MESSAGE" ] && echo "ERROR: TRAVIS_COMMIT_MESSAGE must be set" >&2 && exit 1
 [ -z "$TRAVIS_PULL_REQUEST" ] && echo "ERROR: TRAVIS_PULL_REQUEST must be set" >&2 && exit 1
+[ -z "$TRAVIS_REPO_SLUG" ] && echo "ERROR: TRAVIS_REPO_SLUG environment variable has to be set" >&2 && exit 1
 
 [ "$TRAVIS_PULL_REQUEST" = "false" ] && echo 0 && exit 0
 
 [[ "$#" -le 0 || "$#" -gt 1 ]] && echo "ERROR: INCORRECT ARGUMENT NUMBER PROVIDED" >&2 && exit 1
 
-PR_URL="https://api.github.com/repos/systemd/systemd/issues/$TRAVIS_PULL_REQUEST"
+PR_URL="https://api.github.com/repos/$TRAVIS_REPO_SLUG/issues/$TRAVIS_PULL_REQUEST"
 
 PR_LABEL_URL="$PR_URL/labels"
 
