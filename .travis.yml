@@ -118,9 +118,11 @@ jobs:
 
         - stage: clean docker
           language: python
+          python:
+              - "3.6"
           env:
             - SIZE_LIMIT="3000" # Limit in MBs
-            - TAG_LIMIT="3" # Number of tags to be kept at the time
+            - TAG_LIMIT="7" # FIXME Number of tags to be kept at the time
           script:
                 # Get docker-remote tool and setup venv
               - sudo $CI_TOOL_DIR/get-docker-remote.sh
@@ -157,7 +159,7 @@ stages:
 
       # Check for repository size and clean Docker repo if necessary
     - name: clean Docker
-      if: type = cron
+      if: type = cron OR env(CLEAN_COMMIT_FLAG) = 1
 
 env:
     global:
@@ -179,6 +181,7 @@ env:
           # Parse commit message for optional meta commands
         - FEDORA_VERSION=$($CI_SCRIPT_DIR/parse-commit-message.sh VERSION)
         - COVERITY_COMMIT_FLAG=$($CI_SCRIPT_DIR/parse-commit-message.sh COVERITY)
+        - CLEAN_COMMIT_FLAG=($CI_SCRIPT_DIR/parse-commit-message.sh CLEAN)
 
 # Allow travis builds only for master branch
 # branches:

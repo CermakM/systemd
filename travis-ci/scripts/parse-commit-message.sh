@@ -7,7 +7,7 @@
 META_CMDS=`grep -oP '(?<=\[ci )(.*)(?=\])' <<< $TRAVIS_COMMIT_MESSAGE`
 
 for meta in ${META_CMDS}; do
-	case "${meta}" in
+	case "${meta,,}" in
 		fedora*)
 
 			FEDORA_VERSION=${meta#*:}
@@ -20,6 +20,9 @@ for meta in ${META_CMDS}; do
 			;;
 		coverity)
 			RUN_COVERITY=1
+			;;
+		clean)
+			CLEAN_COMMIT_FLAG=1
 			;;
 	esac
 done
@@ -34,5 +37,7 @@ if [ "$#" -eq 0 ]; then
 fi
 
 for arg in "$@"; do
-	printf '%s\n%s' "FEDORA_VERSION=$FEDORA_VERSION" "RUN_COVERITY=$RUN_COVERITY" | grep ${arg} | cut -d'=' -f2
+	printf '%s\n%s\n%s' \
+		"FEDORA_VERSION=$FEDORA_VERSION" "RUN_COVERITY=$RUN_COVERITY" "CLEAN_COMMIT_FLAG=$CLEAN_COMMIT_FLAG" \
+		| grep -i ${arg} | cut -d'=' -f2
 done
