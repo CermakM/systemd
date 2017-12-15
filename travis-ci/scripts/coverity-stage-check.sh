@@ -5,6 +5,8 @@
 #  and git labels decides whether to run coverity - this allows for real-time
 #  midifications of build
 
+set -x
+
 # Environment check
 [ -z $GITHUB_TOKEN ] && echo "ERROR: GITHUB_TOKEN environment variable has to be set" >&2 && exit 1
 [ -z $TRAVIS_EVENT_TYPE ] && echo "ERROR: TRAVIS_EVENT_TYPE environment variable has to be set" >&2 && exit 1
