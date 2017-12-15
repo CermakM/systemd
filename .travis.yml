@@ -117,6 +117,7 @@ jobs:
               - docker exec -it travis_coverity_scan coverity.sh
 
         - stage: clean docker
+          language: python
           env:
             - SIZE_LIMIT="3000" # Limit in MBs
             - TAG_LIMIT="3" # Number of tags to be kept at the time

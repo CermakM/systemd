@@ -4,7 +4,7 @@
 # Sets up venv folder
 # Notes: run with sudo command
 
-# Install python and virtual environment
+# Make sure python3 is installed and install git and virtual environment
 sudo apt-get update && sudo apt-get -y install python3 python3-pip git
 sudo apt-get install -y $(apt-cache search venv | cut -d' ' -f 1)
 

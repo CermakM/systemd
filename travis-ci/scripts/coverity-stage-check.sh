@@ -14,14 +14,14 @@
 # Coverity meta command in commit message and cron job guarantees coverity to run
 [[ $COVERITY_COMMIT_FLAG -eq 1  || "$TRAVIS_EVENT_TYPE" = 'cron' ]] && exit 0
 
+COVERITY_STAGE_NUMBER=5
+
 # Otherwise allow only for pull request with coverity label
 if [ "$TRAVIS_EVENT_TYPE" != 'pull' ]; then
 	travis login -g $GITHUB_TOKEN  # FIXME Get systemd api token
 	travis cancel "$TRAVIS_BUILD_NUMBER.$COVERITY_STAGE_NUMBER"
 	exit $?
 fi
-
-COVERITY_STAGE_NUMBER=5
 
 # Otherwise check for coverity label
 HAS_COVERITY_LABEL=$($CI_SCRIPT_DIR/has-git-label.sh coverity)
