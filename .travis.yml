@@ -139,20 +139,20 @@ stages:
     - name: initialization
 
     - name: build docker image
-      if: type != cron
+      if: type = cron
     - name: build
-      if: type != cron
+      if: type = cron
     - name: test
-      if: type != cron
+      if: type = cron
 
       # These stages run separately, the resulting container will not be pushed to Docker Hub
       # This stage will only run on special conditions
     - name: coverity scan
-      if: type = cron
+      if: type != cron
 
       # Check for repository size and clean Docker repo if necessary
     - name: clean Docker
-      if: type = cron
+      if: type != cron
 
 env:
     global:
