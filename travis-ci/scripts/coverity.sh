@@ -49,8 +49,14 @@ fi
 #   fi
 # fi
 
+set -x
+
+tree -d $TOOL_BASE
+
 TOOL_DIR=`find $TOOL_BASE -type d -name 'cov-analysis*'`
-export PATH=$TOOL_DIR/bin:$PATH
+export PATH="$TOOL_DIR/bin:$PATH"
+
+echo "$PATH"
 
 # Disable CCACHE for cov-build to compilation units correctly
 export CCACHE_DISABLE=1
@@ -66,7 +72,7 @@ cov-import-scm --dir $RESULTS_DIR --scm git --log $RESULTS_DIR/scm_log.txt
 
 if [ $? != 0 ]; then
   echo -e "\033[33;1mCoverity Scan Build failed: $TEXT.\033[0m"
-	exit 1mCoverity
+	exit 1
 fi
 
 # # Upload results
