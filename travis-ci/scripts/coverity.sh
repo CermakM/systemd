@@ -33,21 +33,21 @@ else
   exit 1
 fi
 
-# Verify upload is permitted
-AUTH_RES=`curl -s --form project="$COVERITY_SCAN_PROJECT_NAME" --form token="$COVERITY_SCAN_TOKEN" $SCAN_URL/api/upload_permitted`
-if [ "$AUTH_RES" = "Access denied" ]; then
-  echo -e "\033[33;1mCoverity Scan API access denied. Check COVERITY_SCAN_PROJECT_NAME and COVERITY_SCAN_TOKEN.\033[0m"
-  exit 1
-else
-	AUTH=`echo $AUTH_RES | python -c "import sys, json; print json.load(sys.stdin)['upload_permitted']"`
-  if [ "$AUTH" = "True" ]; then
-    echo -e "\033[33;1mCoverity Scan analysis authorized per quota.\033[0m"
-  else
-	  WHEN=`echo $AUTH_RES | python -c "import sys; json; print json.load(sys.stdin)['next_upload_permitted_at']"`
-    echo -e "\033[33;1mCoverity Scan analysis NOT authorized until $WHEN.\033[0m"
-    exit 0
-  fi
-fi
+# # Verify upload is permitted
+# AUTH_RES=`curl -s --form project="$COVERITY_SCAN_PROJECT_NAME" --form token="$COVERITY_SCAN_TOKEN" $SCAN_URL/api/upload_permitted`
+# if [ "$AUTH_RES" = "Access denied" ]; then
+#   echo -e "\033[33;1mCoverity Scan API access denied. Check COVERITY_SCAN_PROJECT_NAME and COVERITY_SCAN_TOKEN.\033[0m"
+#   exit 1
+# else
+# 	AUTH=`echo $AUTH_RES | python -c "import sys, json; print json.load(sys.stdin)['upload_permitted']"`
+#   if [ "$AUTH" = "True" ]; then
+#     echo -e "\033[33;1mCoverity Scan analysis authorized per quota.\033[0m"
+#   else
+# 	  WHEN=`echo $AUTH_RES | python -c "import sys; json; print json.load(sys.stdin)['next_upload_permitted_at']"`
+#     echo -e "\033[33;1mCoverity Scan analysis NOT authorized until $WHEN.\033[0m"
+#     exit 0
+#   fi
+# fi
 
 TOOL_DIR=`find $TOOL_BASE -type d -name 'cov-analysis*'`
 export PATH=$TOOL_DIR/bin:$PATH
