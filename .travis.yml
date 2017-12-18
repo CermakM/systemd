@@ -5,15 +5,6 @@ services:
 
 jobs:
     include:
-        - stage: initialization
-          language: ruby
-          env:
-              # Encrypted GitHub token FIXME - systemd token needed
-              - secure: "YYDXEo+5YOnII7pYg0EibBdYlDUApumPua5hSjF5X3L2FP4dJm1hqA+m/MIUC0nKlXMHOjN2YuQXERuYtCO7+nD/GmunFLUfYjm1iCVahWddplS6b2kvJCxeAa4eH8qXlYzMk6jIFxuV2dLqqPgrIabVs6C1n5oD2JQsUi2av7Du4HN1jcZMynelfKg9A60ZxB9uknhcWj7P11iHwWLX4icJrYnCatvU3lFZncNDYc3QTOpKLsnhX5NI2iro5Q9YdtTpg7VToE13izgOH5RxFsTV/Xwu1HV8aKoGuGu6l3XKyh9Jfl5MUrsjfdW3CTWKKHI5/ipenSOKGnAVHNQPs70hlJ+7KBc8wjxi0XjsT0MxvSdjDB7vF7GsZJSz6uWgpYuyxdR5vAJR1+TBg5hAb6nWg5g66HOJC0XOphY146TzQVdUNbHG/NVw1ToLg0QD96dwJQDAjiMC51a6shQTRBnWpmIokubGxNFN3cb43751HWGqgDcZoea244uPVqyNZDx2KB5dbecsO0RVbxtFGzQbmsmI0OuAluxpz1OCEtFv0LQR3aMi/JpU58bo+RXMi41492/R2w49dxzr3bm5EOSnCSCWzuGZW788HQy+6cVqa5+00QVXfZtR7Cv72TlRoho6oUkZOkvcCDwCrUra2CmXFjYWiasYeORXMxPWABc="
-          install: gem install travis
-          script:
-              - $CI_SCRIPT_DIR/coverity-stage-check.sh
-
         - stage: build docker image
           env:
               # The machine id will be passed to Dockerfile for later checks
@@ -27,8 +18,6 @@ jobs:
           script:
                 # Copy content of CI_DIR into WORKDIR
               - find $CI_DIR -maxdepth 1 -type f -exec cp -t . {} +
-                # Set fedora version for Docker Image
-              - sed -i -r -e "/^FROM/ s/(fedora:)(.*)/\1$FEDORA_VERSION/" Dockerfile
               - echo "ENV GIT_SHA ${TRAVIS_COMMIT}" >> Dockerfile
               - echo "ENV MACHINE_ID ${MACHINE_ID}" >> Dockerfile
               - echo "$(git log -1 ${TRAVIS_COMMIT})" >> COMMITINFO
@@ -159,10 +148,11 @@ stages:
       # These stages run separately, the resulting container will not be pushed to Docker Hub
       # This stage will only run on special conditions
     - name: coverity scan
+      if: type = cron
 
       # Check for repository size and clean Docker repo if necessary
     - name: clean Docker
-      if: type = cron OR env(CLEAN_COMMIT_FLAG) = 1
+      if: type = cron
 
 env:
     global:
@@ -180,12 +170,6 @@ env:
         - CI_TOOL_DIR="$CI_DIR/tools"
         - CI_PATCH_DIR="$CI_DIR/patches"
         - CI_SCRIPT_DIR="$CI_DIR/scripts"
-
-          # Parse commit message for optional meta commands
-        - FEDORA_VERSION=$($CI_SCRIPT_DIR/parse-commit-message.sh VERSION)
-        - COVERITY_COMMIT_FLAG=$($CI_SCRIPT_DIR/parse-commit-message.sh COVERITY)
-        - CLEAN_COMMIT_FLAG=($CI_SCRIPT_DIR/parse-commit-message.sh CLEAN)
-
 
 # notifications:
 #   email:
