@@ -68,7 +68,9 @@ jobs:
               # Token for systemd/systemd Coverity Scan Analysis
               #   The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
               #   via the "travis encrypt" command using the project repo's public key
-              - secure: "UNQLspT89GYWuVKFqW5W5RyqqnYg5RvX20IrNraOddhpdV9nhKBtozrfmhGXDGZwfHGWHt6g7YROlD/NIMvDvThVJIEYvSQiXCoo2zRrwkl2siET5MjPfRG8numiLq0KX47KGmyBJISJZCgDUdNGqqGwgf7AhDN78I3XtgqjFT1z0mGl8n0wiFpKPi7i3nECvF4Mk7xCCHqwByaq0z5G9NkVlOvP1EyCxwv3B6I5Umfch7ibp7iH44YnVXILK+yEry5dMuctYwYkDouR80ChEPQQ5fhhpO4++HJmFuSpfMTeCHpucAd2xwSUijejYeN/GNQ177GxSSk/8hRBGcuSK8T/WJ+KiuJPhZObV8mw+a6+qdQssWY4F9jya5ZKbZ/yTbxjtQ0m4AgtL28P9bEze8pLh16zFMX+hIEuoFSNmJqmtNttfbD5TKyYVZml59s9wvhlvMnlNpRSQva88OAOjXtiA41g+XtTxxpfW9mgd7HYhzSBs1efNiK7PfkANgve7KIYMAmCAqasgb1IIAyX7stOlJH06QOFXNH55PmJLkkKyL3SMQzgryMDWegU+XbS8t43r0x14WLuE7sc9JtnOr/G8hthFaMRp8xLy9aCBwyEIkEsyWa50VMoZDa3Spdb4r1CKBwcGdCbyE4rCehwEIznbfrsSovhwiUds7bbhBU="
+              # - secure: "UNQLspT89GYWuVKFqW5W5RyqqnYg5RvX20IrNraOddhpdV9nhKBtozrfmhGXDGZwfHGWHt6g7YROlD/NIMvDvThVJIEYvSQiXCoo2zRrwkl2siET5MjPfRG8numiLq0KX47KGmyBJISJZCgDUdNGqqGwgf7AhDN78I3XtgqjFT1z0mGl8n0wiFpKPi7i3nECvF4Mk7xCCHqwByaq0z5G9NkVlOvP1EyCxwv3B6I5Umfch7ibp7iH44YnVXILK+yEry5dMuctYwYkDouR80ChEPQQ5fhhpO4++HJmFuSpfMTeCHpucAd2xwSUijejYeN/GNQ177GxSSk/8hRBGcuSK8T/WJ+KiuJPhZObV8mw+a6+qdQssWY4F9jya5ZKbZ/yTbxjtQ0m4AgtL28P9bEze8pLh16zFMX+hIEuoFSNmJqmtNttfbD5TKyYVZml59s9wvhlvMnlNpRSQva88OAOjXtiA41g+XtTxxpfW9mgd7HYhzSBs1efNiK7PfkANgve7KIYMAmCAqasgb1IIAyX7stOlJH06QOFXNH55PmJLkkKyL3SMQzgryMDWegU+XbS8t43r0x14WLuE7sc9JtnOr/G8hthFaMRp8xLy9aCBwyEIkEsyWa50VMoZDa3Spdb4r1CKBwcGdCbyE4rCehwEIznbfrsSovhwiUds7bbhBU="
+              # FIXME: TEST
+              - secure: "FOfIhGZcIViZtG7hHu5WSSgtuD0BcIr+AkTvBCosFX4cgNAxy7SAXcoq/7Nod2i6gceSY0OyoDVt2MY5Iy9wfU6wMklkpqZim/F/sdihrBjJWnybwVPROcZrXeCjJbdo5ak57KQ5p+hKPJRnPlTSUKzF14VXq6SGJV+jJq+wHj7r8NdC2+6owsh5zFrLarOL5d7yzPbQVBXQtkf2h+0o+ylKNT1OTASl4ba/HIgJaWYu1QQwiyNF7lmtZ2QEQG4t4+AYfI8//lDdiEv/sDAPfqmR+5hO/NCAn+nCIYbXULQoiuUg4pZ+As7lQS9Ti0yTlnnac7xo8TetNCNF/oZLQY5IXpZCHIFFJWI+9lxN+Ni2g79iKda9a9U1dyCJDd8kBixFvD2nFTjODjNE6GaADMTj6sSyaxLoBAJA0DZeGk95aqZK2BJHU+jqHTDL62S3etpu/Xsq/xCRzPQHL1NXMtS/Ne9v7LAEVlqpqPI1xAI+rJL2m5ZaAPM3MeufB2pleBcSHBBnaiy0ZPnfMVdZFWPPog7uoJTZsVB7ze4mwoeHKRMtjTfMYlGwf0hkPWyeUgn2m1Dvppq+vEeBI768g+LXXDytiqqjYdWnBYl4UBFnjjlufHvkZtZrg5psWEwhhHij+cqb4x7uy7avuVEX5GbGPZVPbjU8I0VpND0pl68="
           script:
                 # Apply systemd patches
               - $CI_SCRIPT_DIR/autopatch-systemd.sh "$TRAVIS_BUILD_DIR"
@@ -92,21 +94,21 @@ jobs:
               - $CI_TOOL_DIR/get-coverity.sh
               - TOOL_DIR="$(find $TOOL_BASE -type d -name 'cov-analysis*')"
 
-                # Apply coverity patches
-              - $CI_SCRIPT_DIR/autopatch-coverity.sh "$TOOL_DIR"
-
                 # Export env variables for Coverity scan
               - env | grep -E "TRAVIS|COV|TOOL|URL" > .cov-env
+                # prevent _Float128 Coverity issue
+              - echo  >> .cov-env
               - |
                   docker run -dit --env-file .cov-env \
                   -v ${TOOL_BASE}:${TOOL_BASE}:ro \
                   --name travis_coverity_scan ${DOCKER_REPOSITORY}:${TRAVIS_COMMIT} bash
                 # Make sure Coverity script is executable
-              - docker cp $CI_SCRIPT_DIR/coverity.sh travis_coverity_scan:/usr/local/bin
+              - docker cp scripts/coverity.sh travis_coverity_scan:/usr/local/bin
                 # Preconfigure with meson to prevent Coverity from capturing meson metadata
-              - docker exec -it travis_coverity_scan meson cov-build
+              - docker exec -it travis_coverity_scan CFLAGS='-D_Float128=long\ double' meson cov-build -Dman=false
                 # Run Coverity Analysis
-              - docker exec -it travis_coverity_scan coverity.sh
+              - docker exec -it travis_coverity_scan coverity.sh build
+              # - docker exec -it travis_coverity_scan coverity.sh upload
 
         - stage: clean docker
           language: python
@@ -139,20 +141,20 @@ stages:
     - name: initialization
 
     - name: build docker image
-      if: type != cron
+      if: type = cron # FIXME
     - name: build
-      if: type != cron
+      if: type = cron # FIXME
     - name: test
-      if: type != cron
+      if: type = cron # FIXME
 
       # These stages run separately, the resulting container will not be pushed to Docker Hub
       # This stage will only run on special conditions
     - name: coverity scan
-      if: type = cron
+      if: type != cron
 
       # Check for repository size and clean Docker repo if necessary
     - name: clean Docker
-      if: type = cron
+      if: type != cron
 
 env:
     global:
@@ -168,7 +170,6 @@ env:
 
         - CI_DIR="$TRAVIS_BUILD_DIR/travis-ci"
         - CI_TOOL_DIR="$CI_DIR/tools"
-        - CI_PATCH_DIR="$CI_DIR/patches"
         - CI_SCRIPT_DIR="$CI_DIR/scripts"
 
 notifications:
