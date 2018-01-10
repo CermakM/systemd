@@ -108,11 +108,13 @@ jobs:
 
         - stage: clean docker
           language: python
-          python:
-              - "3.5"
+          # python:
+              # - "3.6"  Probably broken ATM
           env:
-            - SIZE_LIMIT="3000" # Limit in MBs
-            - TAG_LIMIT="3" # Number of tags to be kept at the time
+              - SIZE_LIMIT="3000" # Limit in MBs
+              - TAG_LIMIT="3" # Number of tags to be kept at the time
+          before-script:
+              - sudo apt-get -y install python3
           script:
                 # Get docker-remote tool and setup venv
               - sudo $CI_TOOL_DIR/get-docker-remote.sh
