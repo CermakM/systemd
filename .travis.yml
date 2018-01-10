@@ -93,8 +93,6 @@ jobs:
 
                 # Export env variables for Coverity scan
               - env | grep -E "TRAVIS|COV|TOOL|URL" > .cov-env
-                # prevent _Float128 Coverity issue
-              - echo  >> .cov-env
               - |
                   docker run -dit --env-file .cov-env \
                   -v ${TOOL_BASE}:${TOOL_BASE}:ro \
@@ -102,6 +100,7 @@ jobs:
                 # Make sure Coverity script is executable
               - docker cp scripts/coverity.sh travis_coverity_scan:/usr/local/bin
                 # Preconfigure with meson to prevent Coverity from capturing meson metadata
+                # Set compiler flag to prevent emit failure
               - docker exec -it travis_coverity_scan CFLAGS='-D_Float128=long\ double' meson cov-build -Dman=false
                 # Run Coverity Analysis
               - docker exec -it travis_coverity_scan coverity.sh build
